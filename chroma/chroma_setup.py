@@ -5,7 +5,7 @@ from langchain_core.vectorstores import VectorStoreRetriever
 
 
 def get_data():
-    with open("../.data/c4.min.md") as f:
+    with open(".data/c4.min.md") as f:
         content = f.read()
         print(content)
         return content

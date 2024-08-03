@@ -11,18 +11,11 @@ docs = text_splitter.split_documents(documents)
 
 embedding_function = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-db2 = Chroma.from_documents(docs, embedding_function, persist_directory=".db/chroma_db")
+db = Chroma.from_documents(docs, embedding_function)
+retriever = db.as_retriever(search_type="mmr")
 
-query = "How many components are there in this c4 diagram?"
-docs = db2.similarity_search(query)
-
-db3 = Chroma(persist_directory=".db/chroma_db", embedding_function=embedding_function)
-docs = db3.similarity_search(query)
+query = "What did the president say about Ketanji Brown Jackson"
+docs = retriever.invoke(query)
 
 for d in docs:
-    print(d.page_content)
-
-docs2 = db3.similarity_search_with_score(query)
-
-for d in docs2:
-    print(d)
+  print(d.page_content)

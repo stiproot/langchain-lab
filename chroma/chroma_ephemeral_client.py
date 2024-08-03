@@ -22,4 +22,5 @@ openai_lc_client = Chroma.from_documents(
 
 query = "What components are there in this architecture?"
 docs = openai_lc_client.similarity_search(query)
+
 print(docs[0].page_content)
