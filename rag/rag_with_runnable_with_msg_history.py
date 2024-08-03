@@ -16,6 +16,7 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
+openai_config = load_openai_config()
 
 store = {}
 
@@ -25,8 +26,6 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
         store[session_id] = ChatMessageHistory()
     return store[session_id]
 
-
-openai_config = load_openai_config()
 
 llm = AzureChatOpenAI(**openai_config)
 
