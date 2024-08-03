@@ -16,7 +16,7 @@ db2 = Chroma.from_documents(
 )
 
 query = "How many components are there in this c4 diagram?"
-# docs = db2.similarity_search(query)
+docs = db2.similarity_search(query)
 
 db3 = Chroma(persist_directory="../.db/chroma_db", embedding_function=embedding_function)
 docs = db3.similarity_search(query)

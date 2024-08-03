@@ -13,7 +13,6 @@ text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 docs = text_splitter.split_documents(documents)
 
 client = chromadb.HttpClient(settings=Settings(allow_reset=True))
-client.reset()
 
 collection = client.create_collection("c4-diagrams")
 
