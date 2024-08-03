@@ -1,6 +1,8 @@
-## Setup
+## Docs
 
-### Chroma
+- [https://python.langchain.com/v0.2/docs/integrations/vectorstores/chroma/](https://python.langchain.com/v0.2/docs/integrations/vectorstores/chroma/)
+
+## Setup
 
 Chroma vector store is used for RAG.
 
@@ -25,5 +27,4 @@ docker-compose up -d --build
 
 4. Reset your chroma store (when necessary):
 
-* [chroma-reset.py](.chroma/chroma_reset.py)
-* [chroma-client.py](.chroma/chroma_client.py)
+* [chroma_reset.py](chroma/chroma_reset.py)
