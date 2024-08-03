@@ -11,7 +11,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import AzureChatOpenAI
-from config_loader import load_openai_config
+from ..common.config_loader import load_openai_config
 
 openai_config = load_openai_config()
 
