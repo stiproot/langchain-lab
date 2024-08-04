@@ -21,8 +21,9 @@ def multiply(a: int, b: int) -> int:
     return a * b
 
 
-tools = [add, multiply]
-llm_with_tools = llm.bind_tools(tools)
+tools = {"add": add, "multiply": multiply}
+
+llm_with_tools = llm.bind_tools(tools.values())
 
 query = "What is 3 * 12? Also, what is 11 + 49?"
 
@@ -34,9 +35,8 @@ messages.append(ai_msg)
 
 
 for tool_call in ai_msg.tool_calls:
-    selected_tool = {"add": add, "multiply": multiply}[tool_call["name"].lower()]
+    selected_tool = tools[tool_call["name"].lower()]
     tool_msg = selected_tool.invoke(tool_call)
-    print(tool_msg)
     messages.append(tool_msg)
 
 ai_msg2 = llm_with_tools.invoke(messages)
