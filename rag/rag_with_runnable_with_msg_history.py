@@ -11,10 +11,10 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import AzureChatOpenAI
-from config_loader import load_openai_config
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from config_loader import load_openai_config
 
 openai_config = load_openai_config()
 

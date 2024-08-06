@@ -7,3 +7,6 @@ langchain-huggingface
 bs4
 chromadb
 sentence-transformers
+langgraph
+langsmith
+IPython
