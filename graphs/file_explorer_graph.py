@@ -71,6 +71,7 @@ def route_tools(
     else:
         raise ValueError(f"No messages found in input state to tool_edge: {state}")
     if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
+        print(ai_message.tool_calls)
         return "tools"
     return "__end__"
 
