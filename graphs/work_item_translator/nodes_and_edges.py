@@ -72,7 +72,6 @@ def grade_documents(state) -> Literal["generate", "rewrite"]:
 
 ### Nodes
 
-
 def agent(state):
     """
     Invokes the agent model to generate a response based on the current state. Given
