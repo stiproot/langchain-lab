@@ -30,8 +30,8 @@ retriever = vectorstore.as_retriever()
 
 retriever_tool = create_retriever_tool(
     retriever,
-    "retrieve_blog_posts",
-    "Search and return information about Lilian Weng blog posts on LLM agents, prompt engineering, and adversarial attacks on LLMs.",
+    "retrieve_additional_context",
+    "Search and return additional information about the correct structure of work items as YAML.",
 )
 
 tools = [retriever_tool]
