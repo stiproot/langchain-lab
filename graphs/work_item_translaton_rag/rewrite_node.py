@@ -1,5 +1,5 @@
 from langchain_core.messages import HumanMessage
-from graphs.work_item_translator.model_factory import ModelFactory
+from common.model_factory import ModelFactory
 
 
 def rewrite(state):

@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
-from graphs.work_item_translator.model_factory import ModelFactory
+from common.model_factory import ModelFactory
 
 
 def validate_documents(state) -> Literal["generate", "rewrite"]:

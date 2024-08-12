@@ -1,4 +1,4 @@
-from graphs.work_item_translator.model_factory import ModelFactory
+from common.model_factory import ModelFactory
 from graphs.work_item_translator.retriever_factory import tools
 
 

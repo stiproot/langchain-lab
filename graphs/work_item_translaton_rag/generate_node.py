@@ -1,7 +1,7 @@
 from langchain import hub
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from graphs.work_item_translator.model_factory import ModelFactory
+from common.model_factory import ModelFactory
 
 
 def generate(state):
