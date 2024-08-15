@@ -10,3 +10,4 @@ sentence-transformers
 langgraph
 langsmith
 IPython
+pydantic

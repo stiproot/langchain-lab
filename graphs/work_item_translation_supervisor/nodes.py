@@ -1,9 +1,12 @@
-from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_core.messages import BaseMessage, HumanMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_openai import AzureChatOpenAI
+from langchain_core.messages import AIMessage, ToolMessage
 
 
 def agent_node(state, agent, name):
     result = agent.invoke(state)
-    return {"messages": [HumanMessage(content=result["output"], name=name)]}
+    if isinstance(result, ToolMessage):
+        pass
+
+    else:
+        result = AIMessage(**result.dict(exclude={"type", "name"}), name=name)
+
+    return {"messages": [result], "sender": name}
