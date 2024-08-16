@@ -1,5 +1,5 @@
 from common.model_factory import ModelFactory
-from graphs.work_item_translator.retriever_factory import tools
+from graphs.tools import retriever_tool
 
 
 def agent(state):
@@ -16,7 +16,7 @@ def agent(state):
     print("---CALL AGENT---")
     messages = state["messages"]
     model = ModelFactory.create()
-    model = model.bind_tools(tools)
+    model = model.bind_tools([retriever_tool])
     response = model.invoke(messages)
     # We return a list, because this will get added to the existing list
     return {"messages": [response]}

@@ -8,8 +8,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import ToolNode
 
-from graphs.work_item_translation_supervisor.nodes import agent_node
-from graphs.work_item_translation_supervisor.supervisor import supervisor_chain, members
+from graphs.work_item_translation.supervisor.nodes import agent_node
+from graphs.work_item_translation.supervisor.supervisor import supervisor_chain, members
 
 from common.model_factory import ModelFactory
 from common.prompts.sys_prompts import TXT_TO_YML_SYSP, YML_TO_JSON_SYSP
