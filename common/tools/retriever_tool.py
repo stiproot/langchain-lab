@@ -56,7 +56,7 @@ class RetrieveAdditionalContext(BaseTool):
 
     def _run(self, query: str) -> str:
         """Use the tool"""
-        print("[TOOL] retrieving...")
+        print(f"[TOOL] retrieving... args: query: {query}")
         return self.retriever.invoke(query)
 
 
