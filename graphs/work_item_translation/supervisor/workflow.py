@@ -87,10 +87,10 @@ graph = workflow.compile()
 
 user_input = (
     "Create a work item tree structure as YAML out of the following text:\n"
-    "Build web application."
-    "Workflow builder web component."
-    "We need to investigate a database technology to use."
-    "Investigate Dapr workflows as a workflow engine."
+    "Build web application.\n"
+    "Workflow builder web component.\n"
+    "We need to investigate a database technology to use.\n"
+    "Investigate Dapr workflows as a workflow engine.\n"
     "Build BFF (backend for frontend) API."
 )
 
