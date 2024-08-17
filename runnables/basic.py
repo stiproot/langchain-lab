@@ -16,7 +16,7 @@ def p(x: str) -> str:
 def s(x: str) -> List[str]:
     return x.split(":")
 
-runnable = RunnableLambda(f)
+f_runnable = RunnableLambda(f)
 p_runnable = RunnableLambda(p)
 s_runnable = RunnableLambda(s)
 
@@ -24,8 +24,13 @@ s_runnable = RunnableLambda(s)
 # p_as_tool = p_runnable.as_tool()
 # output = as_tool.invoke({"a": 3, "b": [1, 2]})
 
-chain = runnable | p_runnable | StrOutputParser()
+chain = f_runnable | p_runnable | StrOutputParser()
+
+f_chain = f_runnable | p | StrOutputParser()
 
 output = chain.invoke({"a": 3, "b": [1, 2]})
-
 print(output)
+
+output = f_chain.invoke({"a": 3, "b": [1, 2]})
+print(output)
+
