@@ -104,18 +104,9 @@ for output in graph.stream(
     },
     {"recursion_limit": 100},
 ):
-    # if "__end__" not in s:
-    #     print(s)
-    #     print("----")
     for key, value in output.items():
         pprint.pprint(f"Output from node '{key}':")
         pprint.pprint("---")
         pprint.pprint(value, indent=2, width=80, depth=None)
     pprint.pprint("\n---\n")
 
-# for output in graph.stream(inputs):
-#     for key, value in output.items():
-#         pprint.pprint(f"Output from node '{key}':")
-#         pprint.pprint("---")
-#         pprint.pprint(value, indent=2, width=80, depth=None)
-#     pprint.pprint("\n---\n")
