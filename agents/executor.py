@@ -43,22 +43,18 @@ def run_agent(input_text):
       MessagesPlaceholder(variable_name='agent_scratchpad')
   ])
 
-  # Initialize the agent with the tools
   agent = create_openai_tools_agent(llm, tools, prompt)
 
-  # Initialize the agent executor (adds a memory component to the agent)
   agent_executor = AgentExecutor(agent=agent, tools=tools, handle_parsing_errors=True)
 
   response = agent_executor.invoke({"input_text": input_text})
 
   return response
 
-# Use the agent executor
 input_text = """"Write me a Flask application that returns the response 'Hello World!' as an alert when a user clicks a button on a front end at localhost:5000/.
 
 Write all necessary files to disk at the following location: /Users/simon.stipcich/code/repo/langchain-lab/agents/.executor_output/"""
 
-# Run the agent to generate the code. Then run `python app.py` and navigate to http://localhost:5000/ to view the app.
 result = run_agent(input_text)
 
 print(result)
