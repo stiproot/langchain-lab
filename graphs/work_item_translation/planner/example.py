@@ -22,7 +22,7 @@ from common.model_factory import ModelFactory
 # from common.tools import MapYmlToJsonTool, RetrieveAdditionalContext
 # from common.agent_factory import create_agent
 
-os.environ["TAVILY_API_KEY"] = "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"
+os.environ["TAVILY_API_KEY"] = ""
 tools = [TavilySearchResults(max_results=3)]
 
 prompt = hub.pull("wfh/react-agent-executor")
