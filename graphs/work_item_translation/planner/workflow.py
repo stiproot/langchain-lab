@@ -3,14 +3,25 @@ import operator
 import pprint
 import asyncio
 import os
-from typing import Sequence, TypedDict, Annotated, Literal, Annotated, List, Tuple, Union
+from typing import (
+    Sequence,
+    TypedDict,
+    Annotated,
+    Literal,
+    Annotated,
+    List,
+    Tuple,
+    Union,
+)
 
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_openai import AzureChatOpenAI
+
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain import hub
 from langchain_community.tools.tavily_search import TavilySearchResults
-
+from langchain.agents import AgentExecutor
 
 from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import ToolNode, create_react_agent
@@ -18,8 +29,10 @@ from langgraph.prebuilt import ToolNode, create_react_agent
 # from graphs.work_item_translation.supervisor.nodes import agent_node
 # from graphs.work_item_translation.supervisor.supervisor import supervisor_chain, members
 from common.model_factory import ModelFactory
+
 # from common.prompts.sys_prompts import TXT_TO_YML_SYSP, YML_TO_JSON_SYSP
 from common.tools import MapYmlToJsonTool, RetrieveAdditionalContext
+
 # from common.agent_factory import create_agent
 
 # model = ModelFactory.create()
@@ -77,50 +90,48 @@ class Act(BaseModel):
 class AssignedStep(BaseModel):
     """The task, and entity to execute it."""
 
-    step: str = Field(
-        description="The step to execute."
-    )
+    step: str = Field(description="The step to execute.")
 
-    entity: str = Field(
-        description="The entity to execute out the step."
-    )
+    entity: str = Field(description="The entity to execute out the step.")
 
 
 class AssignedSteps(BaseModel):
     """A list of assigned steps."""
 
-    assinged_steps: List[AssignedStep] = Field(
-        description="A list of assigned steps."
-    )
+    assigned_steps: List[AssignedStep] = Field(description="A list of assigned steps.")
 
 
-planner_prompt = ChatPromptTemplate.from_messages(
+planner_prompt = """For the given objective, come up with a simple step by step plan. \
+    This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+    The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
+
+planner_prompt_template = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """For the given objective, come up with a simple step by step plan. \
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.""",
+            planner_prompt,
         ),
         ("placeholder", "{messages}"),
     ]
 )
 planner_model = ModelFactory.create().with_structured_output(Plan)
-planner_chain = planner_prompt | planner_model
+planner_chain = planner_prompt_template | planner_model
 
-assigner_prompt = ChatPromptTemplate.from_messages(
+assigner_prompt = """Your job is to assign a step to the appropraite entity that can execute it. An entity in this context could be a function, an agent or a tool."""
+assigner_prompt_template = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """Your job is to assign a step to the appropraite entity that can execute it. An entity in this context could be a function, an agent or a tool.""",
+            assigner_prompt,
         ),
         ("placeholder", "{messages}"),
     ]
 )
 assigner_model = ModelFactory.create().with_structured_output(AssignedSteps)
-assigner_chain = assigner_prompt | assigner_model
+assigner_chain = assigner_prompt_template | assigner_model
 
-def create_agent(llm: AzureChatOpenAI, system_message: str, tools: list = []):
+
+def create_chain(llm: AzureChatOpenAI, system_message: str, tools: list = []):
     """Create an agent."""
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -137,15 +148,46 @@ def create_agent(llm: AzureChatOpenAI, system_message: str, tools: list = []):
     return prompt | llm
 
 
-# output = planner.invoke(
-#     {
-#         "messages": [
-#             ("user", user_input)
-#         ]
-#     }
-# )
-#
-# pprint.pprint(output)
+def create_planner_chain_executor(chain):
+    def call_chain(state: AgentState):
+        pprint.pprint("MESSAGES:")
+        messages = state["messages"]
+        pprint.pprint(messages)
+
+        output = chain.invoke({"messages": messages})
+        pprint.pprint("OUTPUT:")
+        pprint.pprint(output)
+
+        message = "\n".join([f"Step {i+1}: {s}" for i, s in enumerate(output.steps)])
+        pprint.pprint("MESSAGE:")
+        pprint.pprint(message)
+
+        messages += [AIMessage(content=message, tools=[])]
+
+    return call_chain
+
+
+def create_assigner_chain_executor(chain):
+    def call_chain(state: AgentState):
+        messages = state["messages"]
+        pprint.pprint(messages)
+
+        output = chain.invoke({"messages": messages})
+        pprint.pprint(output)
+
+        message = "\n".join(
+            [
+                f"{i+1}. Assigned: {s.entity} -> Step: {s.step}"
+                for i, s in enumerate(output.assigned_steps)
+            ]
+        )
+        pprint.pprint("MESSAGE:")
+        pprint.pprint(message)
+
+        messages += [AIMessage(content=message, tools=[])]
+
+    return call_chain
+
 
 def call_tool(state):
     messages = state["messages"]
@@ -191,12 +233,18 @@ def call_tool(state):
 #     else:
 #         return "continue"
 
-
-
 workflow = StateGraph(AgentState)
 
-workflow.add_node("planner", planner_chain)
-workflow.add_node("assigner", assigner_chain)
+# workflow.add_node("planner", planner_chain)
+# planner_chain = create_chain(planner_model, planner_prompt)
+# planner_agent_executor = AgentExecutor(agent=planner_agent, handle_parsing_errors=True)
+planner_agent = create_planner_chain_executor(planner_chain)
+workflow.add_node("planner", planner_agent)
+
+# workflow.add_node("assigner", assigner_chain)
+assigner_agent = create_assigner_chain_executor(assigner_chain)
+# assigner_agent_executor = AgentExecutor(agent=assigner_agent, handle_parsing_errors=True)
+workflow.add_node("assigner", assigner_agent)
 
 # Set the entrypoint as `agent`
 # This means that this node is the first one called
