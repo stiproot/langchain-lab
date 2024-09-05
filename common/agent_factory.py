@@ -2,28 +2,10 @@ from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import AzureChatOpenAI
+from typing import List, Any
 
 
-# def create_agent(
-#     llm: AzureChatOpenAI, tools: list, system_prompt: str
-# ) -> AgentExecutor:
-#     # Each worker node will be given a name and some tools.
-#     prompt = ChatPromptTemplate.from_messages(
-#         [
-#             (
-#                 "system",
-#                 system_prompt,
-#             ),
-#             MessagesPlaceholder(variable_name="messages"),
-#             MessagesPlaceholder(variable_name="agent_scratchpad"),
-#         ]
-#     )
-#     agent = create_openai_tools_agent(llm, tools, prompt)
-#     executor = AgentExecutor(agent=agent, tools=tools)
-#     return executor
-
-
-def create_agent(llm: AzureChatOpenAI, tools: list, system_message: str):
+def create_assistant_agent(llm: AzureChatOpenAI, tools: list, system_message: str):
     """Create an agent."""
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -41,3 +23,28 @@ def create_agent(llm: AzureChatOpenAI, tools: list, system_message: str):
     prompt = prompt.partial(system_message=system_message)
     prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
     return prompt | llm.bind_tools(tools)
+
+
+def create_agent(llm: AzureChatOpenAI, system_message: str, tools: List[Any] = []):
+    """Create an agent."""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                (
+                    "{system_message}"
+                    + "\n You have access to the following tools: {tool_names}."
+                    if len(tools)
+                    else ""
+                ),
+            ),
+            MessagesPlaceholder(variable_name="messages"),
+        ]
+    )
+    prompt = prompt.partial(system_message=system_message)
+
+    if len(tools):
+        prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
+        return prompt | llm.bind_tools(tools)
+
+    return prompt | llm
