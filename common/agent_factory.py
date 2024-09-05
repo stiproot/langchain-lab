@@ -45,6 +45,6 @@ def create_agent(llm: AzureChatOpenAI, system_message: str, tools: List[Any] = [
 
     if len(tools):
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
-        return prompt | llm.bind_tools(tools)
+        # return prompt | llm.bind_tools(tools)
 
     return prompt | llm

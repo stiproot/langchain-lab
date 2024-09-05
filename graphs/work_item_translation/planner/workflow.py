@@ -45,12 +45,14 @@ tools = [map_yml_to_json_tool, retriever_tool]
 # tool_node = ToolNode(tools)
 
 user_input = (
-    "Create a work item tree structure as YAML out of the following text:\n"
+    "Create a YAML work item tree structure out of the following text:\n"
+    "<text>\n"
     "Build web application.\n"
     "Workflow builder web component.\n"
     "We need to investigate a database technology to use.\n"
     "Investigate Dapr workflows as a workflow engine.\n"
-    "Build BFF (backend for frontend) API."
+    "Build BFF (backend for frontend) API.\n"
+    "</text>"
 )
 
 
@@ -102,15 +104,22 @@ class AssignedSteps(BaseModel):
     assigned_steps: List[AssignedStep] = Field(description="A list of assigned steps.")
 
 
-planner_prompt = """For the given objective, come up with a simple step by step plan. \
-    This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-    The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
+planner_prompt = """For the given objective, come up with a step by step plan. \
+    Use the tools available to you to complete your plan. \
+    This plan should involve individual tasks. \
+    Make sure that each step has all the information needed."""
 
-planner_model = ModelFactory.create().with_structured_output(Plan)
-planner_agent = create_agent(llm=planner_model, system_message=planner_prompt)
+planner_model = (
+    ModelFactory.create().bind_tools([retriever_tool]).with_structured_output(Plan)
+)
+planner_agent = create_agent(
+    llm=planner_model, system_message=planner_prompt, tools=[retriever_tool]
+)
 
 
-assigner_prompt = """Your job is to assign a step to the appropraite entity that can execute it. An entity in this context could be a function, an agent or a tool."""
+assigner_prompt = """Your job is to assign a step to an appropriate entity that can execute it. \
+    An entity in this context could be a function, an agent or a tool. \
+    The choice of entity should be chosen from the tools or agents provided to you."""
 
 assigner_model = ModelFactory.create().with_structured_output(AssignedSteps)
 assigner_agent = create_agent(llm=assigner_model, system_message=assigner_prompt)
