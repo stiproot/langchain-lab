@@ -3,6 +3,7 @@ import operator
 import pprint
 import asyncio
 import os
+from enum import Enum
 from typing import (
     Sequence,
     TypedDict,
@@ -16,7 +17,7 @@ from typing import (
 
 from langchain_openai import AzureChatOpenAI
 
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain import hub
@@ -25,6 +26,10 @@ from langchain.agents import AgentExecutor
 
 from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import ToolNode, create_react_agent
+from langgraph.prebuilt.tool_executor import ToolExecutor
+
+# This a helper class we have that is useful for running tools
+# It takes in an agent action and calls that tool and returns the result
 
 # from graphs.work_item_translation.supervisor.nodes import agent_node
 # from graphs.work_item_translation.supervisor.supervisor import supervisor_chain, members
@@ -41,7 +46,9 @@ from common.tools import MapYmlToJsonTool, RetrieveAdditionalContext
 map_yml_to_json_tool = MapYmlToJsonTool()
 retriever_tool = RetrieveAdditionalContext()
 
-tools = [map_yml_to_json_tool, retriever_tool]
+tools = [retriever_tool]
+
+tool_executor = ToolExecutor(tools)
 # tool_node = ToolNode(tools)
 
 user_input = (
@@ -104,25 +111,51 @@ class AssignedSteps(BaseModel):
     assigned_steps: List[AssignedStep] = Field(description="A list of assigned steps.")
 
 
-planner_prompt = """For the given objective, come up with a step by step plan. \
-    Use the tools available to you to complete your plan. \
-    This plan should involve individual tasks. \
-    Make sure that each step has all the information needed."""
+class StructuredYmlRes(BaseModel):
+    """Structured YAML."""
 
-planner_model = (
-    ModelFactory.create().bind_tools([retriever_tool]).with_structured_output(Plan)
+    structured_yaml: str = Field(description="Structured YAML")
+
+
+class WorkflowAgents(Enum):
+    """Different agents in the workflow."""
+
+    TRANSLATOR = "translator"
+    ASSIGNER = "assigner"
+    PLANNER = "planner"
+
+
+class WorkflowTools(Enum):
+    """Different tools in the workflow."""
+
+    RETRIEVE_ADDITIONAL_CONTEXT = "retrieve_additional_context"
+
+
+translator_prompt = """You are a helpful AI assistant. \
+    Your job is to translate text to YAML. \
+    The YAML needs to follow a specific structure. \
+    Use to tools that are available to you to carry out the this task."""
+translator_model = (
+    ModelFactory.create().bind_tools(tools=[retriever_tool])
+    # .with_structured_output(StructuredYmlRes)
 )
-planner_agent = create_agent(
-    llm=planner_model, system_message=planner_prompt, tools=[retriever_tool]
-)
+translator_agent = create_agent(llm=translator_model, system_message=translator_prompt)
 
 
 assigner_prompt = """Your job is to assign a step to an appropriate entity that can execute it. \
     An entity in this context could be a function, an agent or a tool. \
     The choice of entity should be chosen from the tools or agents provided to you."""
-
 assigner_model = ModelFactory.create().with_structured_output(AssignedSteps)
 assigner_agent = create_agent(llm=assigner_model, system_message=assigner_prompt)
+
+
+planner_prompt = f"""For the given objective, come up with a step by step plan. \
+    Use the tools available to you to complete your plan. \
+    This plan should involve individual tasks. \
+    Make sure that each step has all the information needed. \
+    Tools: {WorkflowTools.RETRIEVE_ADDITIONAL_CONTEXT.value}, Agents: {WorkflowAgents.ASSIGNER.value}, {WorkflowAgents.TRANSLATOR.value}"""
+planner_model = ModelFactory.create().with_structured_output(Plan)
+planner_agent = create_agent(llm=planner_model, system_message=planner_prompt)
 
 
 def create_planner_agent_executor(chain):
@@ -166,13 +199,29 @@ def create_assigner_agent_executor(chain):
     return call_chain
 
 
+def create_translator_agent_executor(chain):
+    def call_chain(state: AgentState):
+        messages = state["messages"]
+        pprint.pprint(messages)
+
+        output = chain.invoke({"messages": messages})
+        pprint.pprint(output)
+
+        messages += output
+
+    return call_chain
+
+
 def call_tool(state):
+    pprint.pprint("CALL_TOOL:")
+
     messages = state["messages"]
-    # Based on the continue condition
-    # we know the last message involves a function call
+    pprint.pprint("MESSAGES:")
+    pprint.pprint(messages)
+
     last_message = messages[-1]
-    # We construct an ToolInvocation for each tool call
     tool_invocations = []
+
     for tool_call in last_message.tool_calls:
         action = ToolInvocation(
             tool=tool_call["name"],
@@ -200,15 +249,18 @@ def call_tool(state):
     return {"messages": tool_messages}
 
 
-# def should_continue(state):
-#     messages = state["messages"]
-#     last_message = messages[-1]
-#     # If there is no function call, then we finish
-#     if not last_message.tool_calls:
-#         return "end"
-#     # Otherwise if there is, we continue
-#     else:
-#         return "continue"
+def should_use_tool(state):
+    pprint.pprint("SHOULD_USE_TOOL:")
+
+    messages = state["messages"]
+    pprint.pprint("MESSAGES:")
+    pprint.pprint(messages)
+
+    if isinstance(messages[-1], ToolMessage):
+        return "call_tool"
+    else:
+        return "continue"
+
 
 workflow = StateGraph(AgentState)
 
@@ -218,40 +270,26 @@ workflow.add_node("planner", planner_node)
 assigner_node = create_assigner_agent_executor(assigner_agent)
 workflow.add_node("assigner", assigner_node)
 
-# Set the entrypoint as `agent`
-# This means that this node is the first one called
+translator_node = create_translator_agent_executor(translator_agent)
+workflow.add_node("translator", translator_node)
+
+workflow.add_node("call_tool", call_tool)
+
 workflow.add_edge(START, "planner")
 workflow.add_edge("planner", "assigner")
-workflow.add_edge("assigner", END)
+workflow.add_edge("assigner", "translator")
 
-# # We now add a conditional edge
-# workflow.add_conditional_edges(
-#     # First, we define the start node. We use `agent`.
-#     # This means these are the edges taken after the `agent` node is called.
-#     "agent",
-#     # Next, we pass in the function that will determine which node is called next.
-#     should_continue,
-#     # Finally we pass in a mapping.
-#     # The keys are strings, and the values are other nodes.
-#     # END is a special node marking that the graph should finish.
-#     # What will happen is we will call `should_continue`, and then the output of that
-#     # will be matched against the keys in this mapping.
-#     # Based on which one it matches, that node will then be called.
-#     {
-#         # If `tools`, then we call the tool node.
-#         "continue": "action",
-#         # Otherwise we finish.
-#         "end": END,
-#     },
-# )
-#
-# # We now add a normal edge from `tools` to `agent`.
-# # This means that after `tools` is called, `agent` node is called next.
-# workflow.add_edge("action", "agent")
-#
-# # Finally, we compile it!
-# # This compiles it into a LangChain Runnable,
-# # meaning you can use it as you would any other runnable
+# workflow.add_edge("assigner", END)
+
+workflow.add_conditional_edges(
+    "translator",
+    should_use_tool,
+    {
+        "call_tool": "call_tool",
+        "continue": END,
+    },
+)
+
 app = workflow.compile()
 
 inputs = {"messages": [HumanMessage(content=user_input)]}
