@@ -20,6 +20,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.runnables import RunnableLambda
 from langchain import hub
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.agents import AgentExecutor
@@ -131,15 +132,14 @@ class WorkflowTools(Enum):
     RETRIEVE_ADDITIONAL_CONTEXT = "retrieve_additional_context"
 
 
-translator_prompt = """You are a helpful AI assistant. \
+translator_prompt = f"""You are a helpful AI assistant. \
     Your job is to translate text to YAML. \
-    The YAML needs to follow a specific structure. \
-    Use to tools that are available to you to carry out the this task."""
-translator_model = (
-    ModelFactory.create().bind_tools(tools=[retriever_tool])
-    # .with_structured_output(StructuredYmlRes)
+    The YAML needs to follow a specific structure, use the context retriever tool to find an example of this structure. \
+    Tools: {WorkflowTools.RETRIEVE_ADDITIONAL_CONTEXT.value}"""
+translator_model = ModelFactory.create().bind_tools(tools=[retriever_tool])
+translator_agent = create_agent(
+    llm=translator_model, system_message=translator_prompt, tools=[retriever_tool]
 )
-translator_agent = create_agent(llm=translator_model, system_message=translator_prompt)
 
 
 assigner_prompt = """Your job is to assign a step to an appropriate entity that can execute it. \
@@ -150,10 +150,10 @@ assigner_agent = create_agent(llm=assigner_model, system_message=assigner_prompt
 
 
 planner_prompt = f"""For the given objective, come up with a step by step plan. \
-    Use the tools available to you to complete your plan. \
+    Keep the agents available to you in mind when contructing the steps. \
     This plan should involve individual tasks. \
     Make sure that each step has all the information needed. \
-    Tools: {WorkflowTools.RETRIEVE_ADDITIONAL_CONTEXT.value}, Agents: {WorkflowAgents.ASSIGNER.value}, {WorkflowAgents.TRANSLATOR.value}"""
+    Agents: {WorkflowAgents.ASSIGNER.value}, {WorkflowAgents.TRANSLATOR.value}"""
 planner_model = ModelFactory.create().with_structured_output(Plan)
 planner_agent = create_agent(llm=planner_model, system_message=planner_prompt)
 
@@ -201,15 +201,39 @@ def create_assigner_agent_executor(chain):
 
 def create_translator_agent_executor(chain):
     def call_chain(state: AgentState):
+        pprint.pprint("TRANSLATOR:")
+
         messages = state["messages"]
+        pprint.pprint("MESSAGES:")
         pprint.pprint(messages)
 
         output = chain.invoke({"messages": messages})
+        pprint.pprint("OUTPUT:")
         pprint.pprint(output)
 
-        messages += output
+        messages += [output]
 
     return call_chain
+
+
+def handle_tool_error(state: AgentState) -> dict:
+    error = state.get("error")
+    tool_calls = state["messages"][-1].tool_calls
+    return {
+        "messages": [
+            ToolMessage(
+                content=f"Error: {repr(error)}\n please fix your mistakes.",
+                tool_call_id=tc["id"],
+            )
+            for tc in tool_calls
+        ]
+    }
+
+
+def create_tool_node_with_fallback(tools: list) -> dict:
+    return ToolNode(tools).with_fallbacks(
+        [RunnableLambda(handle_tool_error)], exception_key="error"
+    )
 
 
 def call_tool(state):
@@ -256,10 +280,14 @@ def should_use_tool(state):
     pprint.pprint("MESSAGES:")
     pprint.pprint(messages)
 
-    if isinstance(messages[-1], ToolMessage):
+    last_message = messages[-1]
+    pprint.pprint("LAST MESSAGE:")
+    pprint.pprint(last_message)
+
+    if last_message.tool_calls:
         return "call_tool"
-    else:
-        return "continue"
+
+    return "continue"
 
 
 workflow = StateGraph(AgentState)
@@ -273,7 +301,8 @@ workflow.add_node("assigner", assigner_node)
 translator_node = create_translator_agent_executor(translator_agent)
 workflow.add_node("translator", translator_node)
 
-workflow.add_node("call_tool", call_tool)
+# workflow.add_node("call_tool", call_tool)
+workflow.add_node("call_tool", create_tool_node_with_fallback(tools))
 
 workflow.add_edge(START, "planner")
 workflow.add_edge("planner", "assigner")
