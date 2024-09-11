@@ -13,7 +13,7 @@ from graphs.work_item_translation.supervisor.supervisor import supervisor_chain,
 
 from common.model_factory import ModelFactory
 from common.prompts.sys_prompts import TXT_TO_YML_SYSP, YML_TO_JSON_SYSP
-from common.tools import MapYmlToJsonTool, RetrieveAdditionalContext
+from common.tools import MapYmlToJsonTool, RetrieveAdditionalContextTool
 from common.agent_factory import create_agent
 
 
@@ -38,7 +38,7 @@ class AgentState(TypedDict):
     sender: str
 
 map_yml_to_json_tool = MapYmlToJsonTool()
-retriever_tool = RetrieveAdditionalContext()
+retriever_tool = RetrieveAdditionalContextTool()
 
 tools = [map_yml_to_json_tool, retriever_tool]
 tool_node = ToolNode(tools)

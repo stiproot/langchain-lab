@@ -27,15 +27,15 @@ from langchain.agents import AgentExecutor
 
 from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import ToolNode, create_react_agent
-from langgraph.prebuilt.tool_executor import ToolExecutor
+from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
 
 from common.model_factory import ModelFactory
 from common.agent_factory import create_agent
 
-from common.tools import MapYmlToJsonTool, RetrieveAdditionalContext
+from common.tools import MapYmlToJsonTool, RetrieveAdditionalContextTool
 
 map_yml_to_json_tool = MapYmlToJsonTool()
-retriever_tool = RetrieveAdditionalContext()
+retriever_tool = RetrieveAdditionalContextTool()
 
 tools = [retriever_tool]
 
