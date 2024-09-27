@@ -38,13 +38,17 @@ from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
 from common.model_factory import ModelFactory
 from common.agent_factory import create_agent
 
-from common.tools import write_contents_to_file, RetrieveAdditionalContextTool
+from common.tools import (
+    write_contents_to_file,
+    RetrieveAdditionalContextTool,
+    validate_mermaid_md,
+)
 
 retrieve_additional_context_tool = RetrieveAdditionalContextTool(
     {"file_path": ".data/c4.min.md", "collection_name": "c4-component-diagram-example"}
 )
 
-tools = [retrieve_additional_context_tool, write_contents_to_file]
+tools = [retrieve_additional_context_tool, write_contents_to_file, validate_mermaid_md]
 tool_executor = ToolExecutor(tools)
 
 
@@ -134,6 +138,8 @@ uml_prompt = f"""
     Iterate Based on Feedback: If revisions are needed, ask for specific feedback and modify the diagrams accordingly.
 
     You are a helpful, knowledgeable assistant for anyone seeking to understand and visualize software architectures through C4 component diagrams.
+
+    When you have output the C4 component diagram, use the validation tool to ensure that the Mermaid syntax is correct. If there are any errors, provide feedback on how to correct them.
 
     Use the tools available to you to complete the task.
     """
