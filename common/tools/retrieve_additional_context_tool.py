@@ -40,7 +40,7 @@ class RetrieveAdditionalContextTool(BaseTool):
         loader = TextLoader(file_info_hash["file_path"])
         docs = loader.load()
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=100, chunk_overlap=50
+            chunk_size=1000, chunk_overlap=50
         )
         doc_splits = text_splitter.split_documents(docs)
         vectorstore = Chroma.from_documents(
