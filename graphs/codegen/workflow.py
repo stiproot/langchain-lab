@@ -45,7 +45,7 @@ from common.tools import (
 )
 
 retrieve_additional_context_tool = RetrieveAdditionalContextTool(
-    {"file_path": ".data/c4.min.md", "collection_name": "c4-component-diagram-example"}
+    {"file_path": ".data/c4.min.md", "collection_name": "c4-container-diagram-example"}
 )
 
 tools = [retrieve_additional_context_tool, write_contents_to_file, validate_mermaid_md]
