@@ -1,3 +1,4 @@
+from typing import List
 import chromadb
 import uuid
 from chromadb.config import Settings
@@ -10,10 +11,14 @@ from langchain_text_splitters import (
 )
 from common.model_factory import EmbeddingFactory
 
-chroma_client = chromadb.HttpClient(
-    settings=Settings(allow_reset=True), host="localhost", port=8000
-)
-azure_embedding = EmbeddingFactory.create()
+
+class ChromaHttpClientFactory:
+    @staticmethod
+    def create():
+        chroma_client = chromadb.HttpClient(
+            settings=Settings(allow_reset=True), host="localhost", port=8000
+        )
+        return chroma_client
 
 
 def embed_and_publish(file_paths, collection_name):
@@ -35,9 +40,14 @@ def embed_and_publish(file_paths, collection_name):
     collection.add(documents=documents)
 
 
-def chunk_embed_and_publish(file_paths, collection_name):
+def chunk_embed_and_publish(
+    file_paths: List[str],
+    collection_name: str,
+    embedding_function: AzureOpenAIEmbeddings,
+    chroma_client: chromadb.HttpClient,
+):
     vector_store = Chroma(
-        embedding_function=azure_embedding,
+        embedding_function=embedding_function,
         client=chroma_client,
         collection_name=collection_name,
     )
@@ -51,15 +61,17 @@ def chunk_embed_and_publish(file_paths, collection_name):
         doc_splits = text_splitter.split_documents(docs)
 
         split_texts = [doc.page_content for doc in doc_splits]
-        embeddings = azure_embedding.embed_documents(split_texts)
+        embeddings = embedding_function.embed_documents(split_texts)
         ids = [f"{file_path}_{i}" for i in range(len(split_texts))]
 
         vector_store.add_documents(documents=doc_splits, embeddings=embeddings, ids=ids)
 
 
-def create_retriever(collection_name):
+def create_retriever(
+    collection_name, chroma_client, embedding_function: AzureOpenAIEmbeddings
+):
     vector_store = Chroma(
-        embedding_function=azure_embedding,
+        embedding_function=embedding_function,
         collection_name=collection_name,
         client=chroma_client,
     )
@@ -70,33 +82,3 @@ def create_retriever(collection_name):
     retriever = vector_store.as_retriever()
 
     return retriever
-
-
-# file_paths = ["/Users/simon.stipcich/code/repo/langchain-lab/.data/c4/c4.example.syscontext.md"]
-FILE_PATHS = [".data/c4/c4.example.syscontext.md"]
-COLLECTION_NAME = "c4-system-context-diagram"
-
-chunk_embed_and_publish(FILE_PATHS, COLLECTION_NAME)
-
-collections = chroma_client.list_collections()
-print("COLLECTIONS: ", collections)
-
-collection = chroma_client.get_collection(COLLECTION_NAME)
-print("COLLECTION: ", collection)
-
-# query_results = collection.query(
-#     query_texts=["What is a C4 System Context diagram?"], n_results=1
-# )
-# print("COLLECTION QUERY RESULTS: ", query_results)
-
-retriever = create_retriever(COLLECTION_NAME)
-
-QUERY_TEXT = "What is a c4 system context diagram?"
-results = retriever.invoke(QUERY_TEXT)
-
-# print(results)
-
-for result in results:
-    print(f"Document ID: {result.metadata['source']}")
-    print(f"Text: {result.page_content}")
-    print("-------")
