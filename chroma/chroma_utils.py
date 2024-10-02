@@ -52,12 +52,9 @@ def chunk_embed_and_publish(file_paths, collection_name):
 
         split_texts = [doc.page_content for doc in doc_splits]
         embeddings = azure_embedding.embed_documents(split_texts)
+        ids = [f"{file_path}_{i}" for i in range(len(split_texts))]
 
-        vector_store.add_documents(
-            documents=doc_splits,
-            embeddings=embeddings,
-            ids=[f"{file_path}_{i}" for i in range(len(doc_splits))],
-        )
+        vector_store.add_documents(documents=doc_splits, embeddings=embeddings, ids=ids)
 
 
 def create_retriever(collection_name):
