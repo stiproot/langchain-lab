@@ -140,6 +140,7 @@ uml_prompt = f"""
     Validate: Use the Mermaid validation tool to ensure that the Mermaid syntax is correct. If there are any errors, fix them.
 
     Iterate Based on Feedback: If revisions are needed, ask for specific feedback and modify the diagrams accordingly.
+    Output any test artifacts to the locations specified in the requirements.
     """
 
 prompt = ChatPromptTemplate.from_messages(
