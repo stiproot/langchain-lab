@@ -16,7 +16,7 @@ from chroma.chroma_utils import (
 )
 
 FILE_PATHS = [
-    ".data/c4/c4.example.def.container.md",
+    ".data/c4/defs/c4.example.def.container.md",
     ".data/c4/c4.example.container.md",
 ]
 
