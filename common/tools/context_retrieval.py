@@ -8,14 +8,13 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_community.document_loaders import TextLoader
 from langchain.tools.retriever import create_retriever_tool
-
 from langchain_core.tools import BaseTool
 
-
-def get_data():
-    with open(".data/wis.md") as f:
-        content = f.read()
-        return content
+from common.model_factory import EmbeddingFactory
+from chroma.chroma_utils import (
+    create_retriever,
+    ChromaHttpClientFactory,
+)
 
 
 class RetrieveAdditionalContextToolSchema(BaseModel):
@@ -27,30 +26,27 @@ class RetrieveAdditionalContextTool(BaseTool):
     This tool queries a vectorstore for additional information.
     """
 
-    name = "retrieve_additional_context"
-    description = "Queries a vectorstore for additional information."
+    name: str = "retrieve_additional_context"
+    description: str = "Queries a vectorstore for additional information."
     args_schema: Type[BaseModel] = RetrieveAdditionalContextToolSchema
     retriever: Any = None
 
-    def __init__(self, file_info_hash: Dict[str, str], /, **data: Any):
+    def __init__(self, collection_name: str, /, **data: Any):
         """
         An agent tool for fetching addition context from a vectorstore.
         """
         super().__init__(**data)
-        loader = TextLoader(file_info_hash["file_path"])
-        docs = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=1000, chunk_overlap=50
+
+        chroma_client = ChromaHttpClientFactory.create()
+        azure_embedding = EmbeddingFactory.create()
+
+        retriever = create_retriever(
+            collection_name=collection_name,
+            chroma_client=chroma_client,
+            embedding_function=azure_embedding,
         )
-        doc_splits = text_splitter.split_documents(docs)
-        vectorstore = Chroma.from_documents(
-            documents=doc_splits,
-            collection_name=file_info_hash["collection_name"],
-            embedding=AzureOpenAIEmbeddings(),
-            persist_directory=".db/chroma_db",
-        )
-        r = vectorstore.as_retriever()
-        self.retriever = r
+
+        self.retriever = retriever
 
     def _run(self, query: str) -> str:
         """Use the tool"""
