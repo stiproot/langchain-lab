@@ -1,4 +1,5 @@
 import pprint
+from functools import partial
 from langchain_core.messages import (
     HumanMessage,
     ToolMessage,
@@ -15,7 +16,11 @@ from common.tools import (
     RetrieveAdditionalContextTool,
     validate_mermaid_md,
 )
-from graphs.codegen.agents import create_agent_executor
+from graphs.codegen.agents import (
+    create_agent_executor,
+    should_invoke_tools,
+    invoke_tools,
+)
 from graphs.codegen.state import AgentState
 
 COLLECTION_NAME = "c4-container-diagram"
@@ -24,60 +29,6 @@ retrieve_additional_context_tool = RetrieveAdditionalContextTool(COLLECTION_NAME
 
 tools = [retrieve_additional_context_tool, write_contents_to_file, validate_mermaid_md]
 tool_executor = ToolExecutor(tools)
-
-
-def invoke_tools(state):
-    print("INVOKE_TOOLS:")
-
-    messages = state["messages"]
-    print("MESSAGES:")
-    pprint.pprint(messages)
-
-    last_message = messages[-1]
-    tool_invocations = []
-
-    for tool_call in last_message.tool_calls:
-        action = ToolInvocation(
-            tool=tool_call["name"],
-            tool_input=tool_call["args"],
-        )
-        tool_invocations.append(action)
-
-    action = ToolInvocation(
-        tool=tool_call["name"],
-        tool_input=tool_call["args"],
-    )
-    # We call the tool_executor and get back a response
-    responses = tool_executor.batch(tool_invocations, return_exceptions=True)
-    # We use the response to create tool messages
-    tool_messages = [
-        ToolMessage(
-            content=str(response),
-            name=tc["name"],
-            tool_call_id=tc["id"],
-        )
-        for tc, response in zip(last_message.tool_calls, responses)
-    ]
-
-    # We return a list, because this will get added to the existing list
-    return {"messages": tool_messages}
-
-
-def should_invoke_tools(state):
-    print("SHOULD_INVOKE_TOOLS:")
-
-    messages = state["messages"]
-    print("MESSAGES:")
-    pprint.pprint(messages)
-
-    last_message = messages[-1]
-    print("LAST MESSAGE:")
-    pprint.pprint(last_message)
-
-    if last_message.tool_calls:
-        return "invoke_tools"
-
-    return "continue"
 
 
 user_input = """
@@ -128,7 +79,7 @@ workflow = StateGraph(AgentState)
 agent_node = create_agent_executor(chain=chain)
 
 workflow.add_node("agent", agent_node)
-workflow.add_node("invoke_tools", invoke_tools)
+workflow.add_node("invoke_tools", partial(invoke_tools, tool_executor=tool_executor))
 
 workflow.add_edge(START, "agent")
 
