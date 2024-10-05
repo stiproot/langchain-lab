@@ -1,48 +1,22 @@
-import functools
-import operator
 import pprint
-import asyncio
-import os
-from enum import Enum
-from typing import (
-    Sequence,
-    TypedDict,
-    Annotated,
-    Literal,
-    Annotated,
-    List,
-    Tuple,
-    Union,
-)
-
-from langchain_openai import AzureChatOpenAI
-
 from langchain_core.messages import (
-    BaseMessage,
     HumanMessage,
-    AIMessage,
     ToolMessage,
-    SystemMessage,
 )
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_core.runnables import RunnableLambda
-from langchain import hub
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain.agents import AgentExecutor
-
-from langgraph.graph import END, StateGraph, START
-from langgraph.prebuilt import ToolNode, create_react_agent
+from langchain_core.runnables import RunnableLambda, Runnable
+from langgraph.graph import START, END, StateGraph
 from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
-
 from common.model_factory import ModelFactory
 from common.agent_factory import create_agent
-
 from common.tools import (
     write_contents_to_file,
     RetrieveAdditionalContextTool,
     validate_mermaid_md,
 )
+from graphs.codegen.agents import create_agent_executor
+from graphs.codegen.state import AgentState
 
 COLLECTION_NAME = "c4-container-diagram"
 
@@ -121,7 +95,7 @@ user_input = """
     - Vue.js should be used for the frontend.
     - Python should be used for the backend.
  
-    Write the output to `/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/architecture.md`.
+    Write the output to `/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/c4-container-diag.md`.
     """
 
 uml_prompt = f"""
@@ -149,48 +123,9 @@ prompt = ChatPromptTemplate.from_messages(
 model = ModelFactory.create().bind_tools(tools)
 chain = prompt | model
 
-# output = chain.invoke({"user_input": user_input})
-# pprint.pprint(output)
-
-# tool_calls = output.tool_calls
-# tool_name_mapping = {tool.name: tool for tool in tools}
-# tool_outputs = []
-
-# for tool_call in tool_calls:
-#     tool_outputs.append(tool_name_mapping[tool_call["name"]].invoke(tool_call["args"]))
-# pprint.pprint(tool_outputs)
-
-
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], operator.add]
-
-
 workflow = StateGraph(AgentState)
 
-
-def create_agent_executor(chain):
-    def call_chain(state: AgentState):
-        print("AGENT:")
-
-        messages = state["messages"]
-        print("MESSAGES:")
-        pprint.pprint(messages)
-
-        output = chain.invoke({"messages": messages})
-        print("OUTPUT:")
-        pprint.pprint(output)
-
-        messages += [output]
-
-    return call_chain
-
-
-# agent_node = lambda state: state["messages"] + [
-#     chain.invoke({"messages": state["messages"]})
-# ]
-
 agent_node = create_agent_executor(chain=chain)
-
 
 workflow.add_node("agent", agent_node)
 workflow.add_node("invoke_tools", invoke_tools)
