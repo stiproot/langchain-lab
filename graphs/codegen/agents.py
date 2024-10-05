@@ -59,11 +59,6 @@ def invoke_tools(state: AgentState, tool_executor):
         )
         tool_invocations.append(action)
 
-    action = ToolInvocation(
-        tool=tool_call["name"],
-        tool_input=tool_call["args"],
-    )
-
     responses = tool_executor.batch(tool_invocations, return_exceptions=True)
 
     tool_messages = [
