@@ -22,51 +22,61 @@ from graphs.codegen.agents import (
     invoke_tools,
 )
 from graphs.codegen.state import AgentState
-from graphs.codegen.types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
-
-context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTAINER.value)
-
-tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
-tool_executor = ToolExecutor(tools)
+from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
+from graphs.codegen.prompts import C4_PROMPT_TEMPLATE
 
 
-prompt = ChatPromptTemplate.from_messages(
-    [("system", uml_prompt), MessagesPlaceholder(variable_name="messages")]
-)
+def build_graph():
 
-model = ModelFactory.create().bind_tools(tools)
-chain = prompt | model
+    context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTAINER.value)
 
-graph = StateGraph(AgentState)
+    tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
+    tool_executor = ToolExecutor(tools)
 
-agent_node = create_agent_executor(chain=chain)
+    prompt_text = C4_PROMPT_TEMPLATE.replace(
+        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.CONTAINER.value
+    )
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", prompt_text), MessagesPlaceholder(variable_name="messages")]
+    )
 
-graph.add_node("agent", agent_node)
-graph.add_node(
-    "invoke_tools", functools.partial(invoke_tools, tool_executor=tool_executor)
-)
+    model = ModelFactory.create().bind_tools(tools)
+    chain = prompt | model
 
-graph.add_edge(START, "agent")
+    graph = StateGraph(AgentState)
 
-graph.add_conditional_edges(
-    "agent",
-    should_invoke_tools,
-    {
-        "invoke_tools": "invoke_tools",
-        "continue": END,
-    },
-)
+    agent_node = create_agent_executor(chain=chain)
 
-# workflow.add_edge("agent", END)
-graph.add_edge("invoke_tools", "agent")
+    graph.add_node("agent", agent_node)
+    graph.add_node(
+        "invoke_tools", functools.partial(invoke_tools, tool_executor=tool_executor)
+    )
 
-app = graph.compile()
+    graph.add_edge(START, "agent")
 
-inputs = {"messages": [HumanMessage(content=user_input)]}
+    graph.add_conditional_edges(
+        "agent",
+        should_invoke_tools,
+        {
+            "invoke_tools": "invoke_tools",
+            "continue": END,
+        },
+    )
 
-for output in app.stream(inputs):
-    for key, value in output.items():
-        pprint.pprint(f"Output from node '{key}':")
-        pprint.pprint("---")
-        pprint.pprint(value, indent=2, width=80, depth=None)
-    pprint.pprint("\n---\n")
+    # workflow.add_edge("agent", END)
+    graph.add_edge("invoke_tools", "agent")
+
+    return graph
+
+
+if __name__ == "__main__":
+    graph = build_graph()
+    app = graph.compile()
+    inputs = {"messages": [HumanMessage(content=user_input)]}
+
+    for output in app.stream(inputs):
+        for key, value in output.items():
+            pprint.pprint(f"Output from node '{key}':")
+            pprint.pprint("---")
+            pprint.pprint(value, indent=2, width=80, depth=None)
+        pprint.pprint("\n---\n")

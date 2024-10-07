@@ -7,7 +7,8 @@ from langchain_core.messages import (
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnableLambda, Runnable
-from langgraph.graph import START, END, StateGraph
+from langchain_core.runnables.graph import Node
+from langgraph.graph import START, END, StateGraph, Graph
 from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
 from common.model_factory import ModelFactory
 from common.agent_factory import create_agent
@@ -22,14 +23,7 @@ from graphs.codegen.agents import (
     invoke_tools,
 )
 from graphs.codegen.state import AgentState
-
-COLLECTION_NAME = "c4-container-diagram"
-
-retrieve_additional_context_tool = RetrieveAdditionalContextTool(COLLECTION_NAME)
-
-tools = [retrieve_additional_context_tool, write_contents_to_file, validate_mermaid_md]
-tool_executor = ToolExecutor(tools)
-
+from graphs.codegen.container_subgraph import build_graph
 
 user_input = """
     Use case:
@@ -46,56 +40,36 @@ user_input = """
     - Vue.js should be used for the frontend.
     - Python should be used for the backend.
  
-    Write the output to `/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/c4-container-diag.md`.
+    Write the output to `/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/architecture.md`.
     """
 
-uml_prompt = f"""
-    You are a UML design agent with expertise in creating C4 component diagrams using Mermaid syntax. 
-    
-    Your primary task is to assist in designing software architectures in generating C4 component diagrams. You should follow these guidelines:
 
-    Understand the Requirements: use the context retriever tool to look up examples of a C4 component diagram and understand the requirements for the diagram. 
+def root_node_action(user_input):
+    print("Entry node executed!")
+    print(user_input)
 
-    Use Mermaid Syntax: Generate the diagrams using Mermaid syntax, ensuring that the structure follows C4 model principles (Context, Container, Component, and Code diagrams).
 
-    Focus on Clarity and Accuracy: Ensure that the diagrams are clear, concise, and easy to understand, accurately representing the architectural components and their relationships.
+root_graph = Graph()
 
-    Provide Explanations: Along with the diagram, provide a brief explanation of the components, their purpose, and their interactions.
+# node = Node(
+#     func=root_node_action,
+#     name="root_entry",
+#     inputs=["raw_data"],
+#     outputs=["processed_data"],
+# )
 
-    Validate: Use the Mermaid validation tool to ensure that the Mermaid syntax is correct. If there are any errors, fix them. Output any test artifacts that are generated during validation to the location specified by the user.
+root_graph.add_node("root_entry", root_node_action)
 
-    Iterate Based on Feedback: If revisions are needed, ask for specific feedback and modify the diagrams accordingly.
-    """
+sub_graph = build_graph().compile()
 
-prompt = ChatPromptTemplate.from_messages(
-    [("system", uml_prompt), MessagesPlaceholder(variable_name="messages")]
-)
+root_graph.add_node("container", sub_graph)
 
-model = ModelFactory.create().bind_tools(tools)
-chain = prompt | model
+root_graph.add_edge(START, "root_entry")
+root_graph.add_edge("root_entry", "container")
+root_graph.add_edge("container", END)
 
-workflow = StateGraph(AgentState)
 
-agent_node = create_agent_executor(chain=chain)
-
-workflow.add_node("agent", agent_node)
-workflow.add_node("invoke_tools", partial(invoke_tools, tool_executor=tool_executor))
-
-workflow.add_edge(START, "agent")
-
-workflow.add_conditional_edges(
-    "agent",
-    should_invoke_tools,
-    {
-        "invoke_tools": "invoke_tools",
-        "continue": END,
-    },
-)
-
-# workflow.add_edge("agent", END)
-workflow.add_edge("invoke_tools", "agent")
-
-app = workflow.compile()
+app = root_graph.compile()
 
 inputs = {"messages": [HumanMessage(content=user_input)]}
 

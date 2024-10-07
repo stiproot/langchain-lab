@@ -1,5 +1,7 @@
 from enum import Enum
 
+# print(enum.__file__)
+
 
 class C4_DIAGRAM_TYPES(Enum):
     CONTEXT = "C4 System Context Diagram"

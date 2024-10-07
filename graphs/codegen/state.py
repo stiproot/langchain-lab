@@ -10,3 +10,7 @@ from langchain_core.messages import BaseMessage
 
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
+
+
+class RootState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], operator.add]
