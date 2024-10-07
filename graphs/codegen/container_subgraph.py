@@ -1,5 +1,5 @@
 import pprint
-from functools import partial
+import functools
 from langchain_core.messages import (
     HumanMessage,
     ToolMessage,
@@ -22,12 +22,11 @@ from graphs.codegen.agents import (
     invoke_tools,
 )
 from graphs.codegen.state import AgentState
+from graphs.codegen.types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 
-COLLECTION_NAME = "c4-container-diagram"
+context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTAINER.value)
 
-retrieve_additional_context_tool = RetrieveAdditionalContextTool(COLLECTION_NAME)
-
-tools = [retrieve_additional_context_tool, write_contents_to_file, validate_mermaid_md]
+tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
 tool_executor = ToolExecutor(tools)
 
 
@@ -38,16 +37,18 @@ prompt = ChatPromptTemplate.from_messages(
 model = ModelFactory.create().bind_tools(tools)
 chain = prompt | model
 
-workflow = StateGraph(AgentState)
+graph = StateGraph(AgentState)
 
 agent_node = create_agent_executor(chain=chain)
 
-workflow.add_node("agent", agent_node)
-workflow.add_node("invoke_tools", partial(invoke_tools, tool_executor=tool_executor))
+graph.add_node("agent", agent_node)
+graph.add_node(
+    "invoke_tools", functools.partial(invoke_tools, tool_executor=tool_executor)
+)
 
-workflow.add_edge(START, "agent")
+graph.add_edge(START, "agent")
 
-workflow.add_conditional_edges(
+graph.add_conditional_edges(
     "agent",
     should_invoke_tools,
     {
@@ -57,9 +58,9 @@ workflow.add_conditional_edges(
 )
 
 # workflow.add_edge("agent", END)
-workflow.add_edge("invoke_tools", "agent")
+graph.add_edge("invoke_tools", "agent")
 
-app = workflow.compile()
+app = graph.compile()
 
 inputs = {"messages": [HumanMessage(content=user_input)]}
 
