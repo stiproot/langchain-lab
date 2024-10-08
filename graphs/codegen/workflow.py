@@ -1,4 +1,6 @@
 import pprint
+import os
+import re
 from functools import partial
 from langchain_core.messages import (
     HumanMessage,
@@ -22,8 +24,11 @@ from graphs.codegen.agents import (
     should_invoke_tools,
     invoke_tools,
 )
-from graphs.codegen.state import AgentState
-from graphs.codegen.container_subgraph import build_graph
+from graphs.codegen.state import RootState
+from graphs.codegen.c4_context_subgraph import build_graph as build_context_subgraph
+from graphs.codegen.c4_container_subgraph import build_graph as build_container_subgraph
+from graphs.codegen.logger import log
+from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 
 user_input = """
     Use case:
@@ -40,36 +45,42 @@ user_input = """
     - Vue.js should be used for the frontend.
     - Python should be used for the backend.
  
-    Write the output to `/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/architecture.md`.
+    Write the output to the following folder `/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/`.
     """
 
 
-def root_node_action(user_input):
-    print("Entry node executed!")
-    print(user_input)
+def init_state(state: RootState):
+    log("init_state START.")
+
+    state.user_input = state["user_input"]
+    folder_path = re.findall(r"`(/[^`]+/)`", state.user_input)[0]
+
+    state.c4_context_diagram_path = os.path.join(
+        folder_path, f"{C4_COLLECTIONS.CONTEXT.value}.md"
+    )
+    state.c4_container_diagram_path = os.path.join(
+        folder_path, f"{C4_COLLECTIONS.CONTAINER.value}.md"
+    )
+
+    log(f"init_state END. state: {state}")
 
 
-root_graph = Graph()
+c4_context_subgraph = build_context_subgraph()
+c4_container_subgraph = build_container_subgraph()
 
-# node = Node(
-#     func=root_node_action,
-#     name="root_entry",
-#     inputs=["raw_data"],
-#     outputs=["processed_data"],
-# )
+root_builder = StateGraph(RootState)
 
-root_graph.add_node("root_entry", root_node_action)
+root_builder.add_node("init_state", init_state)
 
-sub_graph = build_graph().compile()
+root_builder.add_node("c4_context_diagram", c4_context_subgraph.compile())
+root_builder.add_node("c4_container_diagram", c4_container_subgraph.compile())
 
-root_graph.add_node("container", sub_graph)
+root_builder.add_edge(START, "init_state")
+root_builder.add_edge("init_state", "c4_context_diagram")
+root_builder.add_edge("c4_context_diagram", "c4_container_diagram")
+root_builder.add_edge("c4_container_diagram", END)
 
-root_graph.add_edge(START, "root_entry")
-root_graph.add_edge("root_entry", "container")
-root_graph.add_edge("container", END)
-
-
-app = root_graph.compile()
+app = root_builder.compile()
 
 inputs = {"messages": [HumanMessage(content=user_input)]}
 

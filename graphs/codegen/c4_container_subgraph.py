@@ -21,9 +21,9 @@ from graphs.codegen.agents import (
     should_invoke_tools,
     invoke_tools,
 )
-from graphs.codegen.state import AgentState
+from graphs.codegen.state import C4ContainerAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
-from graphs.codegen.prompts import C4_PROMPT_TEMPLATE
+from graphs.codegen.prompts import C4_CONTAINER_PROMPT_TEMPLATE
 
 
 def build_graph():
@@ -33,9 +33,10 @@ def build_graph():
     tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
     tool_executor = ToolExecutor(tools)
 
-    prompt_text = C4_PROMPT_TEMPLATE.replace(
+    prompt_text = C4_CONTAINER_PROMPT_TEMPLATE.replace(
         "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.CONTAINER.value
-    )
+    ).replace("{{c4-collection-type}}", C4_COLLECTIONS.CONTAINER.value)
+
     prompt = ChatPromptTemplate.from_messages(
         [("system", prompt_text), MessagesPlaceholder(variable_name="messages")]
     )
@@ -43,7 +44,7 @@ def build_graph():
     model = ModelFactory.create().bind_tools(tools)
     chain = prompt | model
 
-    graph = StateGraph(AgentState)
+    graph = StateGraph(C4ContainerAgentState)
 
     agent_node = create_agent_executor(chain=chain)
 
@@ -63,8 +64,8 @@ def build_graph():
         },
     )
 
-    # workflow.add_edge("agent", END)
     graph.add_edge("invoke_tools", "agent")
+    graph.add_edge("agent", END)
 
     return graph
 
