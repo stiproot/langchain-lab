@@ -1,9 +1,6 @@
 import pprint
 import functools
-from langchain_core.messages import (
-    HumanMessage,
-    ToolMessage,
-)
+from langchain_core.messages import HumanMessage, ToolMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnableLambda, Runnable
@@ -13,6 +10,7 @@ from common.model_factory import ModelFactory
 from common.agent_factory import create_agent
 from common.tools import (
     write_contents_to_file,
+    read_file_contents,
     RetrieveAdditionalContextTool,
     validate_mermaid_md,
 )
@@ -24,13 +22,39 @@ from graphs.codegen.agents import (
 from graphs.codegen.state import C4ContainerAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import C4_CONTAINER_PROMPT_TEMPLATE
+from graphs.codegen.logger import log
+
+
+def init_state(state: C4ContainerAgentState):
+    log(f"{init_state.__name__} START. state: {state}")
+
+    user_input = state["user_input"]
+    context_file_path = state["c4_context_diagram_path"]
+    container_file_path = state["c4_container_diagram_path"]
+
+    content = f"""
+        Input:
+        C4 context diagram file path: {context_file_path}
+
+        Output:
+        C4 container diagram file path: {container_file_path}
+    """
+
+    state["messages"] += [HumanMessage(content=user_input), AIMessage(content=content)]
+
+    log(f"{init_state.__name__} END. state: {state}")
 
 
 def build_graph():
 
     context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTAINER.value)
 
-    tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
+    tools = [
+        context_retriever,
+        write_contents_to_file,
+        read_file_contents,
+        validate_mermaid_md,
+    ]
     tool_executor = ToolExecutor(tools)
 
     prompt_text = C4_CONTAINER_PROMPT_TEMPLATE.replace(
@@ -48,12 +72,14 @@ def build_graph():
 
     agent_node = create_agent_executor(chain=chain)
 
+    graph.add_node("init_state", init_state)
     graph.add_node("agent", agent_node)
     graph.add_node(
         "invoke_tools", functools.partial(invoke_tools, tool_executor=tool_executor)
     )
 
-    graph.add_edge(START, "agent")
+    graph.add_edge(START, "init_state")
+    graph.add_edge("init_state", "agent")
 
     graph.add_conditional_edges(
         "agent",

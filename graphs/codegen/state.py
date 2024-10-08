@@ -8,6 +8,26 @@ from typing import (
 from langchain_core.messages import BaseMessage
 
 
+# # Define custom reducer (see more on this in the "Custom reducer" section below)
+# def add_msgs(left: list[BaseMessage], right: list[BaseMessage]) -> list[BaseMessage]:
+#     if not left:
+#         left = []
+
+#     if not right:
+#         right = []
+
+#     logs = left.copy()
+#     left_id_to_idx = {log["id"]: idx for idx, log in enumerate(logs)}
+#     # update if the new logs are already in the state, otherwise append
+#     for log in right:
+#         idx = left_id_to_idx.get(log["id"])
+#         if idx is not None:
+#             logs[idx] = log
+#         else:
+#             logs.append(log)
+#     return logs
+
+
 class AgentState(TypedDict):
     user_input: str
     messages: Annotated[Sequence[BaseMessage], operator.add]

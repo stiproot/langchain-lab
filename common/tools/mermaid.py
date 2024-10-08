@@ -1,6 +1,6 @@
 from typing import Tuple, Optional
 from langchain_core.tools import tool
-from .bash import run_bash_cmd
+from .sh import run_bash_cmd
 import os
 
 

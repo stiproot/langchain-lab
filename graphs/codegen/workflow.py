@@ -16,6 +16,7 @@ from common.model_factory import ModelFactory
 from common.agent_factory import create_agent
 from common.tools import (
     write_contents_to_file,
+    read_file_contents,
     RetrieveAdditionalContextTool,
     validate_mermaid_md,
 )
@@ -50,19 +51,18 @@ user_input = """
 
 
 def init_state(state: RootState):
-    log("init_state START.")
+    log(f"{init_state.__name__} START. state: {state}")
 
-    state.user_input = state["user_input"]
-    folder_path = re.findall(r"`(/[^`]+/)`", state.user_input)[0]
+    folder_path = re.findall(r"`(/[^`]+/)`", state["user_input"])[0]
 
-    state.c4_context_diagram_path = os.path.join(
+    state["c4_context_diagram_path"] = os.path.join(
         folder_path, f"{C4_COLLECTIONS.CONTEXT.value}.md"
     )
-    state.c4_container_diagram_path = os.path.join(
+    state["c4_container_diagram_path"] = os.path.join(
         folder_path, f"{C4_COLLECTIONS.CONTAINER.value}.md"
     )
 
-    log(f"init_state END. state: {state}")
+    log(f"{init_state.__name__} END. state: {state}")
 
 
 c4_context_subgraph = build_context_subgraph()
@@ -82,7 +82,7 @@ root_builder.add_edge("c4_container_diagram", END)
 
 app = root_builder.compile()
 
-inputs = {"messages": [HumanMessage(content=user_input)]}
+inputs = {"messages": [HumanMessage(content=user_input)], "user_input": user_input}
 
 for output in app.stream(inputs):
     for key, value in output.items():

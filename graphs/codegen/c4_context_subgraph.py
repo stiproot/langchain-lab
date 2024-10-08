@@ -24,6 +24,23 @@ from graphs.codegen.agents import (
 from graphs.codegen.state import C4ContextAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import BASE_C4_PROMPT_TEMPLATE
+from graphs.codegen.logger import log
+
+
+def init_state(state: C4ContextAgentState):
+    log(f"{init_state.__name__} START. state: {state}")
+
+    user_input = state["user_input"]
+    context_file_path = state["c4_context_diagram_path"]
+
+    content = f"""
+        Output:
+        C4 context diagram file path: {context_file_path}
+    """
+
+    state["messages"] += [HumanMessage(content=user_input), AIMessage(content=content)]
+
+    log(f"{init_state.__name__} END. state: {state}")
 
 
 def build_graph():
@@ -48,12 +65,14 @@ def build_graph():
 
     agent_node = create_agent_executor(chain=chain)
 
+    graph.add_node("init_state", init_state)
     graph.add_node("agent", agent_node)
     graph.add_node(
         "invoke_tools", functools.partial(invoke_tools, tool_executor=tool_executor)
     )
 
-    graph.add_edge(START, "agent")
+    graph.add_edge(START, "init_state")
+    graph.add_edge("init_state", "agent")
 
     graph.add_conditional_edges(
         "agent",
