@@ -64,21 +64,26 @@ def init_state(state: RootState):
 
     log(f"{init_state.__name__} END. state: {state}")
 
+    return {
+        "c4_context_diagram_path": state["c4_context_diagram_path"],
+        "c4_container_diagram_path": state["c4_container_diagram_path"],
+    }
+
 
 c4_context_subgraph = build_context_subgraph()
-c4_container_subgraph = build_container_subgraph()
+# c4_container_subgraph = build_container_subgraph()
 
 root_builder = StateGraph(RootState)
 
 root_builder.add_node("init_state", init_state)
-
 root_builder.add_node("c4_context_diagram", c4_context_subgraph.compile())
-root_builder.add_node("c4_container_diagram", c4_container_subgraph.compile())
+# root_builder.add_node("c4_container_diagram", c4_container_subgraph.compile())
 
 root_builder.add_edge(START, "init_state")
 root_builder.add_edge("init_state", "c4_context_diagram")
-root_builder.add_edge("c4_context_diagram", "c4_container_diagram")
-root_builder.add_edge("c4_container_diagram", END)
+# root_builder.add_edge("c4_context_diagram", "c4_container_diagram")
+# root_builder.add_edge("c4_container_diagram", END)
+root_builder.add_edge("c4_context_diagram", END)
 
 app = root_builder.compile()
 
