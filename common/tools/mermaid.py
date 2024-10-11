@@ -21,6 +21,6 @@ def validate_mermaid_md(
 
     command = f"mmdc -i {file_path} -o {output_file_path or "tmp.md"}"
 
-    log(f"{validate_mermaid_md.__name__} START. file_path: {file_path}, command: {command}")
+    log(f"validate_mermaid_md START. file_path: {file_path}, command: {command}")
 
     return run_bash_cmd(command)

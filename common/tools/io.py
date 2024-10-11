@@ -16,7 +16,7 @@ def write_contents_to_file(file_path: str, file_content: str) -> bool:
       str: A message indicating the file was written to.
     """
 
-    log(f"{write_contents_to_file.__name__} START. file_path: {file_path}")
+    log(f"write_contents_to_file START. file_path: {file_path}")
 
     if os.path.dirname(file_path):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -24,7 +24,7 @@ def write_contents_to_file(file_path: str, file_content: str) -> bool:
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(file_content)
 
-    log(f"{write_contents_to_file.__name__} END. file_path: {file_path}")
+    log(f"write_contents_to_file END. file_path: {file_path}")
 
     return True
 
@@ -40,7 +40,7 @@ def read_file_contents(file_path: str) -> str:
       str: The contents of the file.
     """
 
-    log(f"{read_file_contents.__name__} START. file_path: {file_path}")
+    log(f"read_file_contents START. file_path: {file_path}")
 
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
@@ -48,7 +48,7 @@ def read_file_contents(file_path: str) -> str:
 
 def traverse_folder(folder_path, ignore_folders):
 
-    log(f"{traverse_folder.__name__} START. folder_path: {folder_path}")
+    log(f"traverse_folder START. folder_path: {folder_path}")
 
     file_dict = {}
 
@@ -57,7 +57,7 @@ def traverse_folder(folder_path, ignore_folders):
 
         file_dict[root] = files
 
-    log(f"{traverse_folder.__name__} END.")
+    log(f"traverse_folder END.")
 
     return file_dict
 

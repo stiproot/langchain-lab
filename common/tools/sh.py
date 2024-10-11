@@ -15,7 +15,7 @@ def run_bash_cmd(command: str) -> Tuple[str, str]:
       Tuple[str, str]: A tuple, with the first value being the output and the second the error, if there is one.
     """
 
-    log(f"{run_bash_cmd.__name__} START. command: {command}.")
+    log(f"run_bash_cmd START. command: {command}.")
 
     try:
         result = subprocess.run(
@@ -28,9 +28,9 @@ def run_bash_cmd(command: str) -> Tuple[str, str]:
         output = result.stdout.decode("utf-8").strip()
         error = result.stderr.decode("utf-8").strip()
 
-        log(f"{run_bash_cmd.__name__} END.")
+        log(f"run_bash_cmd END.")
 
         return output, error
     except subprocess.CalledProcessError as e:
-        log(f"{run_bash_cmd.__name__} ERROR. command: {command}, error: {str(e)}")
+        log(f"run_bash_cmd ERROR. command: {command}, error: {str(e)}")
         return None, str(e)
