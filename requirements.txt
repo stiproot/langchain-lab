@@ -11,3 +11,4 @@ langgraph
 langsmith
 IPython
 pydantic
+rich

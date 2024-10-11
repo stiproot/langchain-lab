@@ -2,6 +2,7 @@ from typing import Tuple, Optional
 from langchain_core.tools import tool
 from .sh import run_bash_cmd
 import os
+from common.utils.logger import log
 
 
 @tool
@@ -19,5 +20,7 @@ def validate_mermaid_md(
     """
 
     command = f"mmdc -i {file_path} -o {output_file_path or "tmp.md"}"
+
+    log(f"{validate_mermaid_md.__name__} START. file_path: {file_path}, command: {command}")
 
     return run_bash_cmd(command)

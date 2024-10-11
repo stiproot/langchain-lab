@@ -21,11 +21,11 @@ from graphs.codegen.agents import (
 from graphs.codegen.state import C4ContextAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import BASE_C4_PROMPT_TEMPLATE
-from graphs.codegen.logger import log
+from common.utils.logger import log
 
 
 def init_state(state: C4ContextAgentState):
-    log(f"{init_state.__name__} START. state: {state}")
+    log(f"{init_state.__name__} START.")
 
     user_input = state["user_input"]
     context_file_path = state["c4_context_diagram_path"]
@@ -35,9 +35,9 @@ def init_state(state: C4ContextAgentState):
         C4 context diagram file path: {context_file_path}
     """
 
-    state["messages"] += [HumanMessage(content=user_input), AIMessage(content=content)]
+    state["messages"] += [AIMessage(content=content)]
 
-    log(f"{init_state.__name__} END. state: {state}")
+    log(f"{init_state.__name__} END.")
 
 
 def build_graph():

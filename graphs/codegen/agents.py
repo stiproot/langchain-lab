@@ -5,36 +5,39 @@ from langchain_core.runnables import Runnable
 from langchain_core.messages import ToolMessage
 from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
 from graphs.codegen.state import AgentState
-from graphs.codegen.logger import log
+from common.utils.logger import log
 
 
 def create_agent_executor(chain: Runnable):
-    def call_chain(state: AgentState):
-        log("AGENT:")
+    def invoke_chain(state: AgentState):
+        log(f"{invoke_chain.__name__} START.")
 
         messages = state["messages"]
-        log("MESSAGES:")
-        pprint.pprint(messages)
+        # log("MESSAGES:")
+        # pprint.pprint(messages)
 
         output = chain.invoke({"messages": messages})
-        log("OUTPUT:")
-        pprint.pprint(output)
+        # log("OUTPUT:")
+        # pprint.pprint(output)
 
         messages += [output]
+        log(f"{invoke_chain.__name__} END.")
 
-    return call_chain
+    return invoke_chain
 
 
 def should_invoke_tools(state: AgentState):
-    log("SHOULD_INVOKE_TOOLS:")
+    log(f"{should_invoke_tools.__name__} START.")
 
     messages = state["messages"]
-    log("MESSAGES:")
-    pprint.pprint(messages)
+    # log("MESSAGES:")
+    # pprint.pprint(messages)
 
     last_message = messages[-1]
-    log("LAST MESSAGE:")
-    pprint.pprint(last_message)
+    # log("LAST MESSAGE:")
+    # pprint.pprint(last_message)
+
+    log(f"{should_invoke_tools.__name__} END.")
 
     if last_message.tool_calls:
         return "invoke_tools"
@@ -43,11 +46,11 @@ def should_invoke_tools(state: AgentState):
 
 
 def invoke_tools(state: AgentState, tool_executor):
-    log("INVOKE_TOOLS:")
+    log(f"{invoke_tools.__name__} START.")
 
     messages = state["messages"]
-    log("MESSAGES:")
-    pprint.pprint(messages)
+    # log("MESSAGES:")
+    # pprint.pprint(messages)
 
     last_message = messages[-1]
     tool_invocations = []
@@ -69,5 +72,7 @@ def invoke_tools(state: AgentState, tool_executor):
         )
         for tc, response in zip(last_message.tool_calls, responses)
     ]
+
+    log(f"{invoke_tools.__name__} END.")
 
     return {"messages": tool_messages}

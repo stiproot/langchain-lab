@@ -22,7 +22,7 @@ from graphs.codegen.agents import (
 from graphs.codegen.state import C4ContainerAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import C4_CONTAINER_PROMPT_TEMPLATE
-from graphs.codegen.logger import log
+from common.utils.logger import log
 
 
 def init_state(state: C4ContainerAgentState):

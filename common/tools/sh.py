@@ -1,6 +1,7 @@
 from typing import Tuple
 from langchain_core.tools import tool
 import subprocess
+from common.utils.logger import log
 
 
 @tool
@@ -14,8 +15,9 @@ def run_bash_cmd(command: str) -> Tuple[str, str]:
       Tuple[str, str]: A tuple, with the first value being the output and the second the error, if there is one.
     """
 
+    log(f"{run_bash_cmd.__name__} START. command: {command}.")
+
     try:
-        # Run the command, capture the output and error, and decode it
         result = subprocess.run(
             command,
             shell=True,
@@ -25,6 +27,10 @@ def run_bash_cmd(command: str) -> Tuple[str, str]:
         )
         output = result.stdout.decode("utf-8").strip()
         error = result.stderr.decode("utf-8").strip()
+
+        log(f"{run_bash_cmd.__name__} END.")
+
         return output, error
     except subprocess.CalledProcessError as e:
+        log(f"{run_bash_cmd.__name__} ERROR. command: {command}, error: {str(e)}")
         return None, str(e)

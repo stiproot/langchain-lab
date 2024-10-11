@@ -2,8 +2,8 @@ import yaml
 import json
 from typing import Annotated, Type
 from pydantic import BaseModel, Field
-
 from langchain_core.tools import BaseTool
+from common.utils.logger import log
 
 
 class MapYmlToJsonSchema(BaseModel):
@@ -21,9 +21,10 @@ class MapYmlToJsonTool(BaseTool):
 
     def _run(self, yml: str) -> str:
         """Use the tool"""
-        print(f"[TOOL] mapping YML to JSON... args: yml: {yml}")
+        log(f"{self.name} START.")
         data = yaml.safe_load(yml)
         output = json.dumps(data, indent=2)
+        log(f"{self.name} END.")
         return output
 
     async def _arun(self) -> str:

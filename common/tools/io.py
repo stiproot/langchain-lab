@@ -1,6 +1,7 @@
 import os
 from typing import List, Dict
 from langchain_core.tools import tool
+from common.utils.logger import log
 
 
 @tool
@@ -14,13 +15,16 @@ def write_contents_to_file(file_path: str, file_content: str) -> bool:
     Returns:
       str: A message indicating the file was written to.
     """
-    print("Writing to", file_path)
+
+    log(f"{write_contents_to_file.__name__} START. file_path: {file_path}")
 
     if os.path.dirname(file_path):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(file_content)
+
+    log(f"{write_contents_to_file.__name__} END. file_path: {file_path}")
 
     return True
 
@@ -35,17 +39,25 @@ def read_file_contents(file_path: str) -> str:
     Returns:
       str: The contents of the file.
     """
+
+    log(f"{read_file_contents.__name__} START. file_path: {file_path}")
+
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def traverse_folder(folder_path, ignore_folders):
+
+    log(f"{traverse_folder.__name__} START. folder_path: {folder_path}")
+
     file_dict = {}
 
     for root, dirs, files in os.walk(folder_path):
         dirs[:] = [d for d in dirs if d not in ignore_folders]
 
         file_dict[root] = files
+
+    log(f"{traverse_folder.__name__} END.")
 
     return file_dict
 

@@ -11,6 +11,7 @@ from langchain.tools.retriever import create_retriever_tool
 from langchain_core.tools import BaseTool
 
 from common.model_factory import EmbeddingFactory
+from common.utils.logger import log
 from chroma.chroma_utils import (
     create_retriever,
     ChromaHttpClientFactory,
@@ -50,8 +51,10 @@ class RetrieveAdditionalContextTool(BaseTool):
 
     def _run(self, query: str) -> str:
         """Use the tool"""
-        print(f"[TOOL] retrieving... args: query: {query}")
-        return self.retriever.invoke(query)
+        log(f"{self.name}. START: query: {query}")
+        resp = self.retriever.invoke(query)
+        log(f"{self.name}. END: query: {query}")
+        return resp
 
     async def _arun(self, query: str) -> str:
         """Use the tool"""
