@@ -67,7 +67,7 @@ def init_state(state: RootState):
     return {
         "c4_context_diagram_path": state["c4_context_diagram_path"],
         "c4_container_diagram_path": state["c4_container_diagram_path"],
-        "messages": state["messages"],
+        "global_messages": state["global_messages"],
         "user_input": state["user_input"],
     }
 
@@ -75,27 +75,27 @@ def init_state(state: RootState):
 def flush_state(state: RootState):
     log(f"{flush_state.__name__} START.")
 
-    for msg in state["messages"]:
+    for msg in state["global_messages"]:
         log(msg.content)
 
     log(f"{flush_state.__name__} END.")
 
 
 c4_context_subgraph = build_context_subgraph()
-# c4_container_subgraph = build_container_subgraph()
+c4_container_subgraph = build_container_subgraph()
 
 root_builder = StateGraph(RootState)
 
 root_builder.add_node("init_state", init_state)
-root_builder.add_node("flush_state", flush_state)
 root_builder.add_node("c4_context_diagram", c4_context_subgraph.compile())
-# root_builder.add_node("c4_container_diagram", c4_container_subgraph.compile())
+root_builder.add_node("c4_container_diagram", c4_container_subgraph.compile())
+root_builder.add_node("flush_state", flush_state)
 
 root_builder.add_edge(START, "init_state")
 root_builder.add_edge("init_state", "c4_context_diagram")
-# root_builder.add_edge("c4_context_diagram", "c4_container_diagram")
-# root_builder.add_edge("c4_container_diagram", END)
-root_builder.add_edge("c4_context_diagram", "flush_state")
+root_builder.add_edge("c4_context_diagram", "c4_container_diagram")
+# root_builder.add_edge("c4_context_diagram", "flush_state")
+root_builder.add_edge("c4_container_diagram", "flush_state")
 root_builder.add_edge("flush_state", END)
 
 app = root_builder.compile()

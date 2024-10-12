@@ -35,9 +35,17 @@ def init_state(state: C4ContextAgentState):
         C4 context diagram file path: {context_file_path}
     """
 
-    state["messages"] += [AIMessage(content=content)]
+    state["messages"] += [HumanMessage(content=user_input), AIMessage(content=content)]
 
     log(f"{init_state.__name__} END.")
+
+
+def sync_state(state: C4ContextAgentState):
+    log(f"{sync_state.__name__} START.")
+
+    state["global_messages"] += state["messages"]
+
+    log(f"{sync_state.__name__} END.")
 
 
 def build_graph():
@@ -67,6 +75,7 @@ def build_graph():
     graph.add_node(
         "invoke_tools", functools.partial(invoke_tools, tool_executor=tool_executor)
     )
+    graph.add_node("sync_state", sync_state)
 
     graph.add_edge(START, "init_state")
     graph.add_edge("init_state", "agent")
@@ -76,12 +85,13 @@ def build_graph():
         should_invoke_tools,
         {
             "invoke_tools": "invoke_tools",
-            "continue": END,
+            "continue": "sync_state",
         },
     )
 
     graph.add_edge("invoke_tools", "agent")
-    graph.add_edge("agent", END)
+    graph.add_edge("agent", "sync_state")
+    graph.add_edge("sync_state", END)
 
     return graph
 

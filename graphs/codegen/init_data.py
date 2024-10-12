@@ -14,14 +14,12 @@ from chroma.chroma_utils import (
     create_retriever,
     ChromaHttpClientFactory,
 )
+from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 
 FILE_PATHS = [
     ".data/c4/defs/c4.example.def.container.md",
     ".data/c4/c4.example.container.md",
 ]
-
-COLLECTION_NAME = "c4-container-diagram"
-
 
 chroma_client = ChromaHttpClientFactory.create()
 azure_embedding = EmbeddingFactory.create()
@@ -29,7 +27,7 @@ azure_embedding = EmbeddingFactory.create()
 
 chunk_embed_and_publish(
     file_paths=FILE_PATHS,
-    collection_name=COLLECTION_NAME,
+    collection_name=C4_COLLECTIONS.CONTAINER.value,
     embedding_function=azure_embedding,
     chroma_client=chroma_client,
 )
@@ -37,7 +35,7 @@ chunk_embed_and_publish(
 collections = chroma_client.list_collections()
 print("COLLECTIONS: ", collections)
 
-collection = chroma_client.get_collection(COLLECTION_NAME)
+collection = chroma_client.get_collection(C4_COLLECTIONS.CONTAINER.value)
 print("COLLECTION: ", collection)
 
 # query_results = collection.query(
@@ -46,7 +44,7 @@ print("COLLECTION: ", collection)
 # print("COLLECTION QUERY RESULTS: ", query_results)
 
 retriever = create_retriever(
-    collection_name=COLLECTION_NAME,
+    collection_name=C4_COLLECTIONS.CONTAINER.value,
     chroma_client=chroma_client,
     embedding_function=azure_embedding,
 )

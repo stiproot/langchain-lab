@@ -37,7 +37,7 @@ C4_CONTAINER_PROMPT_TEMPLATE = """
 
     Iterate Based on Feedback: If revisions are needed, ask for specific feedback and modify the diagrams accordingly.
 
-    Read the context diagram that is to be translated from the location on disk provided.
+    Read the context diagram that is to be translated using the file path provided.
 
     Write the output to spcified location, with a file name of {{c4-collection-type}}.md.
     """

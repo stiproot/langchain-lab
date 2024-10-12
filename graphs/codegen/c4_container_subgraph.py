@@ -45,6 +45,14 @@ def init_state(state: C4ContainerAgentState):
     log(f"{init_state.__name__} END. state: {state}")
 
 
+def sync_state(state: C4ContainerAgentState):
+    log(f"{sync_state.__name__} START.")
+
+    state["global_messages"] += state["messages"]
+
+    log(f"{sync_state.__name__} END.")
+
+
 def build_graph():
 
     context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTAINER.value)

@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Optional
 import pprint
 import logging
 from langchain_core.runnables import Runnable
@@ -8,11 +8,11 @@ from graphs.codegen.state import AgentState
 from common.utils.logger import log
 
 
-def create_agent_executor(chain: Runnable):
+def create_agent_executor(chain: Runnable, messages_key: Optional[str] = "messages"):
     def invoke_chain(state: AgentState):
         log(f"{invoke_chain.__name__} START.")
 
-        messages = state["messages"]
+        messages = state[messages_key]
         # log("MESSAGES:")
         # pprint.pprint(messages)
 
