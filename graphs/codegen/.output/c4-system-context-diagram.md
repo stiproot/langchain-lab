@@ -1,16 +1,23 @@
 ```mermaid
 C4Context
-    title System Context Diagram for Meeting Transcript to Azure DevOps Work Items
+  title System Context diagram for Meeting Transcript to Azure DevOps Work Items
 
-    Person(user, "User", "Uploads meeting transcript and approves work item hierarchy.")
-    
-    System(webApp, "Web Application", "Processes transcript and interacts with Azure DevOps.")
-    System_Ext(azureDevOps, "Azure DevOps", "Creates work items based on approved hierarchy.")
-    SystemDb(database, "NoSQL Database", "Stores transcripts and related data.")
-    SystemBoundary(dapr, "Dapr", "Microservices communication framework.")
+  Enterprise_Boundary(b0, "System Boundary") {
+    Person(user, "User", "A user who uploads meeting transcripts and approves work item hierarchies.")
 
-    Rel(user, webApp, "Uploads transcript and approves hierarchy")
-    Rel(webApp, azureDevOps, "Creates work items")
-    Rel(webApp, database, "Stores and retrieves data")
-    Rel(webApp, dapr, "Uses for microservices communication")
+    System(webApp, "Web Application", "Processes transcripts and creates work item hierarchies.")
+
+    System_Ext(azureDevOps, "Azure DevOps", "Stores the work items created from transcripts.")
+
+    SystemDb_Ext(noSqlDb, "NoSQL Database", "Stores transcripts and work item data.")
+  }
+
+  BiRel(user, webApp, "Uploads transcripts and approves hierarchies")
+  Rel(webApp, azureDevOps, "Creates work items")
+  Rel(webApp, noSqlDb, "Stores and retrieves data")
+
+  UpdateElementStyle(user, $fontColor="black", $bgColor="lightgrey", $borderColor="black")
+  UpdateElementStyle(webApp, $fontColor="black", $bgColor="lightblue", $borderColor="black")
+  UpdateElementStyle(azureDevOps, $fontColor="black", $bgColor="lightgreen", $borderColor="black")
+  UpdateElementStyle(noSqlDb, $fontColor="black", $bgColor="lightyellow", $borderColor="black")
 ```

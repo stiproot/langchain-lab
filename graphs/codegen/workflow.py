@@ -28,6 +28,7 @@ from graphs.codegen.agents import (
 from graphs.codegen.state import RootState
 from graphs.codegen.c4_context_subgraph import build_graph as build_context_subgraph
 from graphs.codegen.c4_container_subgraph import build_graph as build_container_subgraph
+from graphs.codegen.c4_component_subgraph import build_graph as build_component_subgraph
 from common.utils.logger import log
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
 
@@ -61,12 +62,16 @@ def init_state(state: RootState):
     state["c4_container_diagram_path"] = os.path.join(
         folder_path, f"{C4_COLLECTIONS.CONTAINER.value}.md"
     )
+    state["c4_component_diagram_path"] = os.path.join(
+        folder_path, f"{C4_COLLECTIONS.COMPONENT.value}.md"
+    )
 
     log(f"{init_state.__name__} END.")
 
     return {
         "c4_context_diagram_path": state["c4_context_diagram_path"],
         "c4_container_diagram_path": state["c4_container_diagram_path"],
+        "c4_component_diagram_path": state["c4_component_diagram_path"],
         "global_messages": state["global_messages"],
         "user_input": state["user_input"],
     }
@@ -83,19 +88,23 @@ def flush_state(state: RootState):
 
 c4_context_subgraph = build_context_subgraph()
 c4_container_subgraph = build_container_subgraph()
+c4_component_subgraph = build_component_subgraph()
 
 root_builder = StateGraph(RootState)
 
 root_builder.add_node("init_state", init_state)
 root_builder.add_node("c4_context_diagram", c4_context_subgraph.compile())
 root_builder.add_node("c4_container_diagram", c4_container_subgraph.compile())
+root_builder.add_node("c4_component_diagram", c4_component_subgraph.compile())
 root_builder.add_node("flush_state", flush_state)
 
 root_builder.add_edge(START, "init_state")
 root_builder.add_edge("init_state", "c4_context_diagram")
 root_builder.add_edge("c4_context_diagram", "c4_container_diagram")
+root_builder.add_edge("c4_container_diagram", "c4_component_diagram")
 # root_builder.add_edge("c4_context_diagram", "flush_state")
-root_builder.add_edge("c4_container_diagram", "flush_state")
+# root_builder.add_edge("c4_container_diagram", "flush_state")
+root_builder.add_edge("c4_component_diagram", "flush_state")
 root_builder.add_edge("flush_state", END)
 
 app = root_builder.compile()

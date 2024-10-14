@@ -19,25 +19,26 @@ from graphs.codegen.agents import (
     should_invoke_tools,
     invoke_tools,
 )
-from graphs.codegen.state import C4ContainerAgentState
+from graphs.codegen.state import C4ComponentAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
-from graphs.codegen.prompts import C4_CONTAINER_PROMPT_TEMPLATE
+from graphs.codegen.prompts import C4_COMPONENT_PROMPT_TEMPLATE
 from common.utils.logger import log
 
 
-def init_state(state: C4ContainerAgentState):
+def init_state(state: C4ComponentAgentState):
     log(f"{init_state.__name__} START. state: {state}")
 
     user_input = state["user_input"]
-    context_file_path = state["c4_context_diagram_path"]
     container_file_path = state["c4_container_diagram_path"]
+    component_file_path = state["c4_component_diagram_path"]
 
     content = f"""
         Input:
-        C4 context diagram file path: {context_file_path}
+        C4 container diagram file path: {container_file_path}
 
         Output:
-        C4 container diagram file path: {container_file_path}
+        C4 component diagram file path: {component_file_path}
+
     """
 
     state["messages"] += [HumanMessage(content=user_input), AIMessage(content=content)]
@@ -45,7 +46,7 @@ def init_state(state: C4ContainerAgentState):
     log(f"{init_state.__name__} END. state: {state}")
 
 
-def sync_state(state: C4ContainerAgentState):
+def sync_state(state: C4ComponentAgentState):
     log(f"{sync_state.__name__} START.")
 
     state["global_messages"] += state["messages"][1:]
@@ -55,7 +56,7 @@ def sync_state(state: C4ContainerAgentState):
 
 def build_graph():
 
-    context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTAINER.value)
+    context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.COMPONENT.value)
 
     tools = [
         context_retriever,
@@ -65,9 +66,9 @@ def build_graph():
     ]
     tool_executor = ToolExecutor(tools)
 
-    prompt_text = C4_CONTAINER_PROMPT_TEMPLATE.replace(
-        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.CONTAINER.value
-    ).replace("{{c4-collection-type}}", C4_COLLECTIONS.CONTAINER.value)
+    prompt_text = C4_COMPONENT_PROMPT_TEMPLATE.replace(
+        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.COMPONENT.value
+    ).replace("{{c4-collection-type}}", C4_COLLECTIONS.COMPONENT.value)
 
     prompt = ChatPromptTemplate.from_messages(
         [("system", prompt_text), MessagesPlaceholder(variable_name="messages")]
@@ -76,7 +77,7 @@ def build_graph():
     model = ModelFactory.create().bind_tools(tools)
     chain = prompt | model
 
-    graph = StateGraph(C4ContainerAgentState)
+    graph = StateGraph(C4ComponentAgentState)
 
     agent_node = create_agent_executor(chain=chain)
 

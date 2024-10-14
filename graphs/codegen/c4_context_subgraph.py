@@ -43,7 +43,7 @@ def init_state(state: C4ContextAgentState):
 def sync_state(state: C4ContextAgentState):
     log(f"{sync_state.__name__} START.")
 
-    state["global_messages"] += state["messages"]
+    state["global_messages"] += state["messages"][1:]
 
     log(f"{sync_state.__name__} END.")
 
