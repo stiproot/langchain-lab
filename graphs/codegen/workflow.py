@@ -30,7 +30,7 @@ from graphs.codegen.c4_context_subgraph import build_graph as build_context_subg
 from graphs.codegen.c4_container_subgraph import build_graph as build_container_subgraph
 from graphs.codegen.c4_component_subgraph import build_graph as build_component_subgraph
 from common.utils.logger import log
-from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
+from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 
 user_input = """
     Use case:
@@ -57,13 +57,13 @@ def init_state(state: RootState):
     folder_path = re.findall(r"`(/[^`]+/)`", state["user_input"])[0]
 
     state["c4_context_diagram_path"] = os.path.join(
-        folder_path, f"{C4_COLLECTIONS.CONTEXT.value}.md"
+        folder_path, f"{COLLECTION_NAMES.C4_SYSCONTEXT_DIAG.value}.md"
     )
     state["c4_container_diagram_path"] = os.path.join(
-        folder_path, f"{C4_COLLECTIONS.CONTAINER.value}.md"
+        folder_path, f"{COLLECTION_NAMES.C4_CONTAINER_DIAG.value}.md"
     )
     state["c4_component_diagram_path"] = os.path.join(
-        folder_path, f"{C4_COLLECTIONS.COMPONENT.value}.md"
+        folder_path, f"{COLLECTION_NAMES.C4_COMPONENT_DIAG.value}.md"
     )
 
     log(f"{init_state.__name__} END.")

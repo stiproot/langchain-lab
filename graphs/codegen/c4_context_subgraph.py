@@ -19,7 +19,7 @@ from graphs.codegen.agents import (
     invoke_tools,
 )
 from graphs.codegen.state import C4ContextAgentState
-from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
+from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import C4_CONTEXT_PROMPT_TEMPLATE
 from common.utils.logger import log
 
@@ -50,14 +50,14 @@ def sync_state(state: C4ContextAgentState):
 
 def build_graph():
 
-    context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.CONTEXT.value)
+    context_retriever = RetrieveAdditionalContextTool(COLLECTION_NAMES.C4_SYSCONTEXT_DIAG.value)
 
     tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
     tool_executor = ToolExecutor(tools)
 
     prompt_text = C4_CONTEXT_PROMPT_TEMPLATE.replace(
-        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.CONTEXT.value
-    ).replace("{{c4-collection-type}}", C4_COLLECTIONS.CONTEXT.value)
+        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.C4_SYSCONTEXT_DIAG.value
+    ).replace("{{c4-collection-type}}", COLLECTION_NAMES.C4_SYSCONTEXT_DIAG.value)
 
     prompt = ChatPromptTemplate.from_messages(
         [("system", prompt_text), MessagesPlaceholder(variable_name="messages")]

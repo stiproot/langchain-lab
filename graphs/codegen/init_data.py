@@ -14,18 +14,23 @@ from chroma.chroma_utils import (
     create_retriever,
     ChromaHttpClientFactory,
 )
-from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
+from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 
 FILE_INFO = {
-    C4_COLLECTIONS.CONTEXT.value: {
+    COLLECTION_NAMES.C4_SYSCONTEXT_DIAG.value: {
         ".data/c4/defs/c4.example.def.syscontext.md",
     },
-    C4_COLLECTIONS.CONTAINER.value: {
+    COLLECTION_NAMES.C4_CONTAINER_DIAG.value: {
         ".data/c4/defs/c4.example.def.container.md",
         ".data/c4/c4.example.container.md",
     },
-    C4_COLLECTIONS.COMPONENT.value: {
+    COLLECTION_NAMES.C4_COMPONENT_DIAG.value: {
         ".data/c4/defs/c4.example.def.component.md",
+    },
+    COLLECTION_NAMES.F4_LANG_LIB.value: {
+        ".data/f4-lang/f4-lang.summary.md",
+        ".data/f4-lang/f4-lang.detail.md",
+        ".data/f4-lang/f4-lang.ifthen.md",
     },
 }
 
@@ -44,7 +49,7 @@ for collection_name, file_paths in FILE_INFO.items():
     # collections = chroma_client.list_collections()
     # print("COLLECTIONS: ", collections)
 
-    # collection = chroma_client.get_collection(C4_COLLECTIONS.CONTAINER.value)
+    # collection = chroma_client.get_collection(COLLECTION_NAMES.C4_CONTAINER_DIAG.value)
     # print("COLLECTION: ", collection)
 
     # query_results = collection.query(
@@ -53,7 +58,7 @@ for collection_name, file_paths in FILE_INFO.items():
     # print("COLLECTION QUERY RESULTS: ", query_results)
 
     # retriever = create_retriever(
-    #     collection_name=C4_COLLECTIONS.CONTAINER.value,
+    #     collection_name=COLLECTION_NAMES.C4_CONTAINER_DIAG.value,
     #     chroma_client=chroma_client,
     #     embedding_function=azure_embedding,
     # )

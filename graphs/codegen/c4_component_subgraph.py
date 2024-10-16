@@ -20,7 +20,7 @@ from graphs.codegen.agents import (
     invoke_tools,
 )
 from graphs.codegen.state import C4ComponentAgentState
-from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
+from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import C4_COMPONENT_PROMPT_TEMPLATE
 from common.utils.logger import log
 
@@ -56,7 +56,7 @@ def sync_state(state: C4ComponentAgentState):
 
 def build_graph():
 
-    context_retriever = RetrieveAdditionalContextTool(C4_COLLECTIONS.COMPONENT.value)
+    context_retriever = RetrieveAdditionalContextTool(COLLECTION_NAMES.C4_COMPONENT_DIAG.value)
 
     tools = [
         context_retriever,
@@ -67,8 +67,8 @@ def build_graph():
     tool_executor = ToolExecutor(tools)
 
     prompt_text = C4_COMPONENT_PROMPT_TEMPLATE.replace(
-        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.COMPONENT.value
-    ).replace("{{c4-collection-type}}", C4_COLLECTIONS.COMPONENT.value)
+        "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.C4_COMPONENT_DIAG.value
+    ).replace("{{c4-collection-type}}", COLLECTION_NAMES.C4_COMPONENT_DIAG.value)
 
     prompt = ChatPromptTemplate.from_messages(
         [("system", prompt_text), MessagesPlaceholder(variable_name="messages")]
