@@ -36,7 +36,7 @@ C4_COMPONENT_PROMPT_TEMPLATE = (
     + BASE_C4_PROMPT_TEMPLATE
 )
 
-F4_LANG_PROMPT = """
+TASK_TREE_PROMPT = """
     You are a C# coding agent with expertise in using the .NET TaskTree library.
     You specialize in translating C4 Component Diagrams as Mermaid into code using the TaskTree library.
 

@@ -21,7 +21,7 @@ from graphs.codegen.agents import (
 )
 from graphs.codegen.state import TaskTreeAgentState
 from graphs.codegen.data_types import COLLECTION_NAMES
-from graphs.codegen.prompts import F4_LANG_PROMPT
+from graphs.codegen.prompts import TASK_TREE_PROMPT
 from graphs.codegen.user_input import USER_INPUT
 from common.utils.logger import log
 
@@ -67,7 +67,7 @@ def build_graph():
     ]
     tool_executor = ToolExecutor(tools)
 
-    prompt_text = F4_LANG_PROMPT
+    prompt_text = TASK_TREE_PROMPT
 
     prompt = ChatPromptTemplate.from_messages(
         [("system", prompt_text), MessagesPlaceholder(variable_name="messages")]

@@ -5,7 +5,7 @@ TaskTree is a .NET library that allows you to build complex workflows.
 
 ## Usage
 ```bash
-dotnet add package TaskTree
+dotnet add package Xo.TaskTree
 ```
 
 ## Examples

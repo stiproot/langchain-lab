@@ -59,3 +59,4 @@ class RootState(TypedDict):
     c4_context_diagram_path: str
     c4_container_diagram_path: str
     c4_component_diagram_path: str
+    code_path: str
