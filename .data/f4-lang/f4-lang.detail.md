@@ -1,7 +1,7 @@
-# F4 Lang
+# F4Lang
 
 ## Summary
-PromiseTree is a .NET library that allows you to build complex workflows easily.
+F4Lang is a .NET library that allows you to build complex workflows easily.
 
 ## Important Components
 ### StateManager

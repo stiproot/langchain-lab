@@ -1,10 +1,11 @@
-# F4 Lang
+# F4Lang
 
 ## Summary
-PromiseTree is a .NET library that allows you to build complex workflows.
+F4Lang is a .NET library that allows you to build complex workflows.
+
 ## Usage
 ```bash
-dotnet add package PromiseTree
+dotnet add package F4Lang
 ```
 
 ## Examples

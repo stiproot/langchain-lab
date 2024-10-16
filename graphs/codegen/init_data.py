@@ -28,7 +28,7 @@ FILE_INFO = {
         ".data/c4/defs/c4.example.def.component.md",
     },
     COLLECTION_NAMES.F4_LANG_LIB.value: {
-        ".data/f4-lang/f4-lang.summary.md",
+        ".data/f4-lang/f4-lang.examples.md",
         ".data/f4-lang/f4-lang.detail.md",
         ".data/f4-lang/f4-lang.ifthen.md",
     },
