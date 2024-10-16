@@ -20,7 +20,7 @@ from graphs.codegen.agents import (
 )
 from graphs.codegen.state import C4ContextAgentState
 from graphs.codegen.data_types import C4_COLLECTIONS, C4_DIAGRAM_TYPES
-from graphs.codegen.prompts import BASE_C4_PROMPT_TEMPLATE
+from graphs.codegen.prompts import C4_CONTEXT_PROMPT_TEMPLATE
 from common.utils.logger import log
 
 
@@ -55,7 +55,7 @@ def build_graph():
     tools = [context_retriever, write_contents_to_file, validate_mermaid_md]
     tool_executor = ToolExecutor(tools)
 
-    prompt_text = BASE_C4_PROMPT_TEMPLATE.replace(
+    prompt_text = C4_CONTEXT_PROMPT_TEMPLATE.replace(
         "{{c4-diagram-type}}", C4_DIAGRAM_TYPES.CONTEXT.value
     ).replace("{{c4-collection-type}}", C4_COLLECTIONS.CONTEXT.value)
 
