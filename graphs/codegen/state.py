@@ -48,6 +48,11 @@ class C4ComponentAgentState(AgentState):
     c4_component_diagram_path: str
 
 
+class F4LangAgentState(AgentState):
+    c4_component_diagram_path: str
+    code_path: str
+
+
 class RootState(TypedDict):
     user_input: str
     global_messages: Annotated[Sequence[BaseMessage], operator.add]
