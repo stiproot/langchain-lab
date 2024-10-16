@@ -37,11 +37,11 @@ C4_COMPONENT_PROMPT_TEMPLATE = (
 )
 
 F4_LANG_PROMPT = """
-    You are a C# coding agent with expertise in using the F4-Lang library.
-    You specialize in translating C4 Component Diagrams as Mermaid into code using the F4-Lang library.
+    You are a C# coding agent with expertise in using the .NET TaskTree library.
+    You specialize in translating C4 Component Diagrams as Mermaid into code using the TaskTree library.
 
     You should follow these guidelines:
-    - Understand the Requirements: use the context retriever tool to look up F4-Lang code examples.
+    - Understand the Requirements: use the context retriever tool to look up TaskTree code examples.
     - Focus on Clarity and Accuracy: Ensure that the code is clear, concise, and easy to understand and accurate.
 
     Write the output to spcified location.

@@ -19,14 +19,14 @@ from graphs.codegen.agents import (
     should_invoke_tools,
     invoke_tools,
 )
-from graphs.codegen.state import F4LangAgentState
+from graphs.codegen.state import TaskTreeAgentState
 from graphs.codegen.data_types import COLLECTION_NAMES
 from graphs.codegen.prompts import F4_LANG_PROMPT
 from graphs.codegen.user_input import USER_INPUT
 from common.utils.logger import log
 
 
-def init_state(state: F4LangAgentState):
+def init_state(state: TaskTreeAgentState):
     log(f"{init_state.__name__} START. state: {state}")
 
     user_input = state["user_input"]
@@ -46,7 +46,7 @@ def init_state(state: F4LangAgentState):
     log(f"{init_state.__name__} END. state: {state}")
 
 
-def sync_state(state: F4LangAgentState):
+def sync_state(state: TaskTreeAgentState):
     log(f"{sync_state.__name__} START.")
 
     state["global_messages"] += state["messages"][1:]
@@ -57,7 +57,7 @@ def sync_state(state: F4LangAgentState):
 def build_graph():
 
     context_retriever = RetrieveAdditionalContextTool(
-        COLLECTION_NAMES.F4_LANG_LIB.value
+        COLLECTION_NAMES.TASK_TREE_LIB.value
     )
 
     tools = [
@@ -76,7 +76,7 @@ def build_graph():
     model = ModelFactory.create().bind_tools(tools)
     chain = prompt | model
 
-    graph = StateGraph(F4LangAgentState)
+    graph = StateGraph(TaskTreeAgentState)
 
     agent_node = create_agent_executor(chain=chain)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         "messages": [HumanMessage(content=USER_INPUT)],
         "user_input": USER_INPUT,
         "c4_component_diagram_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/3.component-diag/10.1.c4-component-diagram.md",
-        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.f4-lang/",
+        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.task-tree/",
     }
 
     for output in app.stream(inputs):

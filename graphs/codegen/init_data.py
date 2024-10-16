@@ -27,10 +27,10 @@ FILE_INFO = {
     COLLECTION_NAMES.C4_COMPONENT_DIAG.value: {
         ".data/c4/defs/c4.example.def.component.md",
     },
-    COLLECTION_NAMES.F4_LANG_LIB.value: {
-        ".data/f4-lang/f4-lang.examples.md",
-        ".data/f4-lang/f4-lang.detail.md",
-        ".data/f4-lang/f4-lang.ifthen.md",
+    COLLECTION_NAMES.TASK_TREE_LIB.value: {
+        ".data/task-tree/task-tree.examples.md",
+        ".data/task-tree/task-tree.detail.md",
+        ".data/task-tree/task-tree.ifthen.md",
     },
 }
 

@@ -48,7 +48,7 @@ class C4ComponentAgentState(AgentState):
     c4_component_diagram_path: str
 
 
-class F4LangAgentState(AgentState):
+class TaskTreeAgentState(AgentState):
     c4_component_diagram_path: str
     code_path: str
 

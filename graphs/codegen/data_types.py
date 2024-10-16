@@ -6,7 +6,7 @@ class COLLECTION_NAMES(Enum):
     C4_CONTAINER_DIAG = "c4-container-diagram"
     C4_COMPONENT_DIAG = "c4-component-diagram"
     C4_CODE_DIAG = "c4-code-diagram"
-    F4_LANG_LIB = "f4-lang-lib"
+    TASK_TREE_LIB = "task-tree-lib"
 
 
 class C4_DIAGRAM_TYPES(Enum):

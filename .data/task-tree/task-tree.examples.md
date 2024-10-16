@@ -1,11 +1,11 @@
-# F4Lang
+# TaskTree
 
 ## Summary
-F4Lang is a .NET library that allows you to build complex workflows.
+TaskTree is a .NET library that allows you to build complex workflows.
 
 ## Usage
 ```bash
-dotnet add package F4Lang
+dotnet add package TaskTree
 ```
 
 ## Examples
