@@ -113,7 +113,7 @@ if __name__ == "__main__":
         "messages": [HumanMessage(content=USER_INPUT)],
         "user_input": USER_INPUT,
         "c4_component_diagram_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/3.component-diag/10.2.c4-component-diagram.md",
-        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.task-tree/XxxAPI",
+        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.task-tree/XxxAPI/",
     }
 
     for output in app.stream(inputs):
