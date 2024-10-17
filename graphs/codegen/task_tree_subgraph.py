@@ -13,6 +13,7 @@ from common.tools import (
     read_file_contents,
     RetrieveAdditionalContextTool,
     validate_mermaid_md,
+    dotnet_build
 )
 from graphs.codegen.agents import (
     create_agent_executor,
@@ -64,6 +65,7 @@ def build_graph():
         context_retriever,
         write_contents_to_file,
         read_file_contents,
+        dotnet_build
     ]
     tool_executor = ToolExecutor(tools)
 
@@ -110,8 +112,8 @@ if __name__ == "__main__":
     inputs = {
         "messages": [HumanMessage(content=USER_INPUT)],
         "user_input": USER_INPUT,
-        "c4_component_diagram_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/3.component-diag/10.1.c4-component-diagram.md",
-        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.task-tree/",
+        "c4_component_diagram_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/3.component-diag/10.2.c4-component-diagram.md",
+        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.task-tree/XxxAPI",
     }
 
     for output in app.stream(inputs):

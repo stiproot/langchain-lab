@@ -49,7 +49,7 @@ def init_state(state: RootState):
     state["c4_component_diagram_path"] = os.path.join(
         folder_path, f"{COLLECTION_NAMES.C4_COMPONENT_DIAG.value}.md"
     )
-    state["code_path"] = folder_path
+    state["code_path"] = os.path.join(folder_path, "4.task-tree", "XxxAPI")
 
     log(f"{init_state.__name__} END.")
 

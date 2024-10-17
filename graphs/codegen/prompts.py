@@ -43,6 +43,7 @@ TASK_TREE_PROMPT = """
     You should follow these guidelines:
     - Understand the Requirements: use the context retriever tool to look up TaskTree code examples.
     - Focus on Clarity and Accuracy: Ensure that the code is clear, concise, and easy to understand and accurate.
+    - Validate: Use the .NET build tool to ensure that the project builds. If there are any errors, fix them and build again.
 
     Write the output to spcified location.
 """
