@@ -16,6 +16,7 @@ BASE_C4_PROMPT_TEMPLATE = """
 C4_CONTEXT_PROMPT_TEMPLATE = (
     """
     You are a UML design agent with expertise in creating {{c4-diagram-type}} using Mermaid syntax. 
+
     """
     + BASE_C4_PROMPT_TEMPLATE
 )
@@ -23,7 +24,9 @@ C4_CONTEXT_PROMPT_TEMPLATE = (
 C4_CONTAINER_PROMPT_TEMPLATE = (
     """
     You are a UML design agent with expertise in creating {{c4-diagram-type}} using Mermaid syntax. 
+
     You translate C4 Context Diagrams into C4 Container Diagrams using Mermaid syntax.
+
     """
     + BASE_C4_PROMPT_TEMPLATE
 )
@@ -31,7 +34,9 @@ C4_CONTAINER_PROMPT_TEMPLATE = (
 C4_COMPONENT_PROMPT_TEMPLATE = (
     """
     You are a UML design agent with expertise in creating {{c4-diagram-type}} using Mermaid syntax. 
-    You specialize in translating C4 Container Diagrams into C4 Component Diagrams using Mermaid syntax. 
+
+    You specialize in translating C4 Container Diagrams into C4 Component Diagrams using Mermaid syntax.
+
     """
     + BASE_C4_PROMPT_TEMPLATE
 )

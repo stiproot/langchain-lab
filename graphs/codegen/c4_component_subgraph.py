@@ -22,6 +22,7 @@ from graphs.codegen.agents import (
 from graphs.codegen.state import C4ComponentAgentState
 from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 from graphs.codegen.prompts import C4_COMPONENT_PROMPT_TEMPLATE
+from graphs.codegen.user_input import USER_INPUT
 from common.utils.logger import log
 
 
@@ -56,7 +57,9 @@ def sync_state(state: C4ComponentAgentState):
 
 def build_graph():
 
-    context_retriever = RetrieveAdditionalContextTool(COLLECTION_NAMES.C4_COMPONENT_DIAG.value)
+    context_retriever = RetrieveAdditionalContextTool(
+        COLLECTION_NAMES.C4_COMPONENT_DIAG.value
+    )
 
     tools = [
         context_retriever,
@@ -108,7 +111,13 @@ def build_graph():
 if __name__ == "__main__":
     graph = build_graph()
     app = graph.compile()
-    inputs = {"messages": [HumanMessage(content=user_input)]}
+    inputs = {
+        "messages": [HumanMessage(content=USER_INPUT)],
+        "user_input": USER_INPUT,
+        "c4_container_diagram_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/3.component-diag/10.2.c4-component-diagram.md",
+        "c4_component_diagram_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/3.component-diag/10.2.c4-component-diagram.md",
+        "code_path": "/Users/simon.stipcich/code/repo/langchain-lab/graphs/codegen/.output/4.task-tree/XxxAPI/",
+    }
 
     for output in app.stream(inputs):
         for key, value in output.items():
