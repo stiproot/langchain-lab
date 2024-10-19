@@ -1,33 +1,44 @@
 ```mermaid
 C4Container
-title Container Diagram for Meeting Transcript to Azure DevOps Work Items
+  title Container Diagram for Meeting Transcript to Azure DevOps Work Items
 
-Person(user, "User", "Uploads meeting transcripts and approves work item hierarchy")
+  Person(user, "User", "")
 
-System_Boundary(webAppBoundary, "Web Application") {
-    Container(frontend, "Frontend", "Vue.js", "Allows users to upload transcripts and view work item hierarchy")
-    Container(backend, "Backend", "Python", "Processes transcripts and interacts with Azure DevOps")
-    ContainerDb(database, "Database", "NoSQL Database", "Stores transcripts and work item data")
-}
+  Container_Boundary(webAppBoundary, "Web Application Boundary") {
+    Container(webApp, "Web Application", "Vue.js", "Allows users to upload transcripts and view work item hierarchy")
+    Container(frontendApi, "Frontend API", "Python, Flask", "Handles requests from the web application")
+  }
 
-System_Ext(azureDevOps, "Azure DevOps", "External system for managing work items")
+  Container_Boundary(backendBoundary, "Backend Boundary") {
+    Container(transcriptProcessor, "Transcript Processor", "Python, Dapr", "Processes transcripts and builds work item hierarchy")
+    Container(workItemCreator, "Work Item Creator", "Python, Dapr", "Creates work items in Azure DevOps")
+  }
 
-Container_Boundary(microservicesBoundary, "Microservices") {
-    Container(transcriptService, "Transcript Service", "Python, Dapr", "Processes and converts transcripts into work items")
-    Container(workItemService, "Work Item Service", "Python, Dapr", "Handles work item hierarchy and creation in Azure DevOps")
-}
+  Container_Boundary(databaseBoundary, "Database Boundary") {
+    ContainerDb(noSqlDb, "NoSQL Database", "MongoDB", "Stores transcripts and work item data")
+  }
 
-Rel(user, frontend, "Uploads transcripts and approves hierarchy")
-Rel(frontend, backend, "Sends transcript data and receives hierarchy")
-Rel(backend, database, "Stores and retrieves data")
-Rel(backend, transcriptService, "Processes transcripts")
-Rel(transcriptService, workItemService, "Sends work item hierarchy")
-Rel(workItemService, azureDevOps, "Creates work items")
+  Container_Boundary(azureDevOpsBoundary, "Azure DevOps Boundary") {
+    Container_Ext(azureDevOpsApi, "Azure DevOps API", "", "Interacts with Azure DevOps to create work items")
+  }
 
-UpdateRelStyle(user, frontend, $offsetY="-30")
-UpdateRelStyle(frontend, backend, $offsetY="-30")
-UpdateRelStyle(backend, database, $offsetX="-50")
-UpdateRelStyle(backend, transcriptService, $offsetX="50")
-UpdateRelStyle(transcriptService, workItemService, $offsetY="30")
-UpdateRelStyle(workItemService, azureDevOps, $offsetX="50")
+  Rel(user, webApp, "Uploads transcripts and approves hierarchy")
+  Rel(webApp, frontendApi, "Sends requests")
+  Rel(frontendApi, transcriptProcessor, "Processes transcript")
+  Rel(transcriptProcessor, workItemCreator, "Sends work item creation requests")
+  Rel(workItemCreator, azureDevOpsApi, "Creates work items")
+  Rel(transcriptProcessor, noSqlDb, "Stores processed data")
+  Rel(noSqlDb, workItemCreator, "Retrieves data")
 ```
+
+### Explanation
+
+- **User**: Interacts with the web application to upload transcripts and approve the work item hierarchy.
+- **Web Application**: Built with Vue.js, it provides the interface for users to interact with the system.
+- **Frontend API**: A Python Flask application that handles requests from the web application.
+- **Transcript Processor**: A microservice using Python and Dapr to process transcripts and build the work item hierarchy.
+- **Work Item Creator**: Another microservice using Python and Dapr to create work items in Azure DevOps.
+- **NoSQL Database**: MongoDB is used to store transcripts and work item data.
+- **Azure DevOps API**: External system that the Work Item Creator interacts with to create work items.
+
+This architecture is designed to handle high throughput and large data storage requirements, leveraging microservices and horizontal scalability.
