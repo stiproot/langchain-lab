@@ -1,14 +1,1 @@
-langchain
-langchain-community
-langchainhub
-langchain-chroma
-langchain-openai
-langchain-huggingface
-bs4
-chromadb
-sentence-transformers
-langgraph
-langsmith
-IPython
-pydantic
-rich
+agnt-smth

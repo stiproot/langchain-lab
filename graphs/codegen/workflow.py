@@ -1,36 +1,13 @@
-import pprint
 import os
 import re
-from functools import partial
-from langchain_core.messages import (
-    HumanMessage,
-    ToolMessage,
-)
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_core.runnables import RunnableLambda, Runnable
-from langchain_core.runnables.graph import Node
-from langgraph.graph import START, END, StateGraph, Graph
-from langgraph.prebuilt.tool_executor import ToolExecutor, ToolInvocation
-from common.model_factory import ModelFactory
-from common.agent_factory import create_agent
-from common.tools import (
-    write_contents_to_file,
-    read_file_contents,
-    RetrieveAdditionalContextTool,
-    validate_mermaid_md,
-)
-from graphs.codegen.agents import (
-    create_agent_executor,
-    should_invoke_tools,
-    invoke_tools,
-)
+from langchain_core.messages import HumanMessage
+from langgraph.graph import START, END, StateGraph
+from common.utils.logger import log
 from graphs.codegen.state import RootState
 from graphs.codegen.c4_context_subgraph import build_graph as build_context_subgraph
 from graphs.codegen.c4_container_subgraph import build_graph as build_container_subgraph
 from graphs.codegen.c4_component_subgraph import build_graph as build_component_subgraph
 from graphs.codegen.task_tree_subgraph import build_graph as build_task_tree_subgraph
-from common.utils.logger import log
 from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 from graphs.codegen.user_input import USER_INPUT
 
@@ -105,6 +82,3 @@ inputs = {"messages": [HumanMessage(content=USER_INPUT)], "user_input": USER_INP
 for output in app.stream(inputs):
     for key, value in output.items():
         log(f"OUTPUT key: '{key}'\nvalue: {value}")
-        # pprint.pprint("---")
-        # pprint.pprint(value, indent=2, width=80, depth=None)
-    # pprint.pprint("\n---\n")

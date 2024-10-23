@@ -8,6 +8,8 @@
 .config/*
 .db/*
 
+.env/*
+
 # User-specific files
 *.suo
 *.user
