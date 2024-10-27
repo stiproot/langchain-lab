@@ -1,44 +1,52 @@
-var builder = WebApplication.CreateBuilder(args);
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Xo.TaskTree;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+namespace XxxAPI
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            var cancellationToken = new CancellationToken();
+            IStateManager stateManager = new StateManager();
 
-app.UseHttpsRedirection();
+            var workflow = stateManager
+                .RootIf<ITranscriptUploadService>()
+                .Then<ITranscriptProcessingService>(
+                    configure => configure.MatchArg("<<transcript>>"),
+                    then => then.Then<IHierarchyApprovalService>(configure: c => c.RequireResult())
+                )
+                .Else<IErrorHandlingService>(c => c.MatchArg("<<error>>"));
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+            var node = workflow.Build();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+            var msgs = await node.Resolve(cancellationToken);
+            var msg = msgs.First();
+            var result = msg.Data<bool>();
 
-app.Run();
+            Console.WriteLine($"Workflow completed with result: {result}");
+        }
+    }
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public interface ITranscriptUploadService
+    {
+        bool UploadTranscript();
+    }
+
+    public interface ITranscriptProcessingService
+    {
+        Task<int> ProcessTranscriptAsync(string transcript);
+    }
+
+    public interface IHierarchyApprovalService
+    {
+        Task<bool> ApproveHierarchyAsync(int hierarchyId);
+    }
+
+    public interface IErrorHandlingService
+    {
+        Task HandleErrorAsync(string error);
+    }
 }
