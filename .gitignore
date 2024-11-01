@@ -8,7 +8,7 @@
 .config/*
 .db/*
 
-.env/*
+.venv/*
 
 # User-specific files
 *.suo
