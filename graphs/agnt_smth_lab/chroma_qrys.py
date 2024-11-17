@@ -2,6 +2,9 @@ import pprint
 import functools
 import operator
 from typing import TypedDict, Sequence, Annotated
+import chromadb
+from chromadb.config import Settings
+import base64
 
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -25,7 +28,18 @@ SYS_PROMPT = """
 
 def build_graph(repo_name: str):
 
-    chroma_client = ChromaHttpClientFactory.create_with_auth()
+    auth_str = f"admin:admin"
+    encoded_auth = base64.b64encode(auth_str.encode()).decode()
+    headers = {"Authorization": f"Basic {encoded_auth}"}
+
+    chroma_client = chromadb.HttpClient(
+        settings=Settings(allow_reset=True),
+        host="", 
+        port=8000, 
+        headers=headers
+    )
+
+    # chroma_client = ChromaHttpClientFactory.create_with_auth()
     embedding_function = EmbeddingFactory.create()
     retriever = RetrieverFactory.create(repo_name, chroma_client=chroma_client, embedding_function=embedding_function)
     print("retriever type", type(retriever))
@@ -41,8 +55,8 @@ def build_graph(repo_name: str):
 
 if __name__ == "__main__":
 
-    repo_name = "Internal-Lexi"
-    inputs = {"messages": [HumanMessage(content="What is Lexi? How can I run it?")]}
+    repo_name = "repo-xxx"
+    inputs = {"messages": [HumanMessage(content="What is XXX? How can I run it?")]}
 
     app = build_graph(repo_name)
 

@@ -9,6 +9,9 @@
 .db/*
 
 .venv/*
+**/*/.venv/*
+
+.env.agnt-smth
 
 # User-specific files
 *.suo
