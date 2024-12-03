@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xo.TaskTree" Version="*" />
+    <PackageReference Include="Xo.TaskTree" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

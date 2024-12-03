@@ -1,11 +1,12 @@
 import pprint
 import functools
+import chromadb
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import START, END, StateGraph
 from langgraph.prebuilt.tool_executor import ToolExecutor
 
-from agnt_smth.core.utls import log, ModelFactory
+from agnt_smth.core.utls import log, ModelFactory, ChromaHttpClientFactory, EmbeddingFactory, RetrieverFactory
 from agnt_smth.core.tools import (
     write_contents_to_file,
     read_file_contents,
@@ -54,9 +55,11 @@ def sync_state(state: C4ContainerAgentState):
 
 def build_graph():
 
-    context_retriever = RetrieveAdditionalContextTool(
-        COLLECTION_NAMES.C4_CONTAINER_DIAG.value
-    )
+    chroma_client = ChromaHttpClientFactory.create_with_auth()
+    embedding_function = EmbeddingFactory.create()
+    retriever = RetrieverFactory.create(COLLECTION_NAMES.C4_CONTAINER_DIAG.value, chroma_client=chroma_client, embedding_function=embedding_function)
+
+    context_retriever = RetrieveAdditionalContextTool(retriever)
 
     tools = [
         context_retriever,

@@ -1,46 +1,26 @@
 ```mermaid
 C4Component
+title Component diagram for Transcript to Azure DevOps Work Items - Python Backend
 
-title Component Diagram for Meeting Transcript to Azure DevOps Work Items
+Container(frontend, "Vue.js Frontend", "JavaScript, Vue.js", "Provides the user interface for uploading transcripts and approving work item hierarchies.")
+ContainerDb(database, "NoSQL Database", "MongoDB", "Stores transcripts, work item hierarchies, and user data.")
+System_Ext(azureDevOps, "Azure DevOps", "External system where work items are created.")
 
-Container_Boundary(webAppBoundary, "Web Application Boundary") {
-    Component(frontendUploader, "Uploader Component", "Vue.js", "Handles transcript uploads")
-    Component(frontendViewer, "Viewer Component", "Vue.js", "Displays work item hierarchy")
-    
-    Rel(frontendUploader, frontendViewer, "Passes uploaded data")
+Container_Boundary(backend, "Python Backend") {
+    Component(transcriptProcessor, "Transcript Processor", "Python Module", "Processes meeting transcripts to extract work item information.")
+    Component(hierarchyBuilder, "Hierarchy Builder", "Python Module", "Builds work item hierarchy from processed transcript data.")
+    Component(workItemCreator, "Work Item Creator", "Python Module", "Creates work items in Azure DevOps based on approved hierarchy.")
+    Component(apiGateway, "API Gateway", "Flask", "Handles incoming API requests and routes them to appropriate components.")
+    Component(daprIntegration, "Dapr Integration", "Dapr Sidecar", "Facilitates communication between microservices using Dapr.")
+
+    Rel(apiGateway, transcriptProcessor, "Routes transcript data to", "HTTP/JSON")
+    Rel(transcriptProcessor, hierarchyBuilder, "Sends processed data to", "Internal Call")
+    Rel(hierarchyBuilder, workItemCreator, "Sends approved hierarchy to", "Internal Call")
+    Rel(workItemCreator, azureDevOps, "Creates work items via", "Azure DevOps API")
+    Rel(transcriptProcessor, database, "Stores processed data in", "MongoDB Protocol")
+    Rel(daprIntegration, apiGateway, "Communicates with", "Dapr Protocol")
 }
 
-Container_Boundary(backendBoundary, "Backend Boundary") {
-    Component(transcriptProcessor, "Transcript Processor", "Python", "Processes transcripts into work item hierarchy")
-    Component(azureDevOpsIntegrator, "Azure DevOps Integrator", "Python", "Creates work items in Azure DevOps")
-    
-    Rel(transcriptProcessor, azureDevOpsIntegrator, "Sends hierarchy for approval")
-}
-
-Container_Boundary(databaseBoundary, "Database Boundary") {
-    Component(transcriptStorage, "Transcript Storage", "NoSQL", "Stores raw and processed transcripts")
-    Component(workItemStorage, "Work Item Storage", "NoSQL", "Stores work item data")
-    
-    Rel(transcriptProcessor, transcriptStorage, "Stores processed data")
-    Rel(azureDevOpsIntegrator, workItemStorage, "Stores work item data")
-}
-
-Container_Boundary(microservicesBoundary, "Microservices Boundary") {
-    Component(transcriptServiceComponent, "Transcript Service Component", "Python", "Processes transcripts")
-    Component(azureDevOpsServiceComponent, "Azure DevOps Service Component", "Python", "Interacts with Azure DevOps")
-    
-    Rel(transcriptServiceComponent, azureDevOpsServiceComponent, "Sends work item hierarchy")
-}
-
-System_Boundary(daprBoundary, "Dapr Boundary") {
-    Component(daprComponent, "Dapr Component", "Microservices Communication", "Facilitates communication between microservices")
-    
-    Rel(daprComponent, transcriptServiceComponent, "Facilitates communication")
-    Rel(daprComponent, azureDevOpsServiceComponent, "Facilitates communication")
-}
-
-Rel(user, frontendUploader, "Uploads transcripts")
-Rel(frontendViewer, user, "Displays hierarchy")
-Rel(frontendUploader, transcriptProcessor, "Sends transcript data")
-Rel(azureDevOpsIntegrator, daprComponent, "Uses for communication")
+Rel(frontend, apiGateway, "Sends transcript and receives hierarchy", "HTTPS/JSON")
+Rel(apiGateway, database, "Stores and retrieves data", "MongoDB Protocol")
 ```

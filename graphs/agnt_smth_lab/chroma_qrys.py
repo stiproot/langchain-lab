@@ -27,22 +27,19 @@ SYS_PROMPT = """
 
 
 def build_graph(repo_name: str):
-
     auth_str = f"admin:admin"
     encoded_auth = base64.b64encode(auth_str.encode()).decode()
     headers = {"Authorization": f"Basic {encoded_auth}"}
 
     chroma_client = chromadb.HttpClient(
         settings=Settings(allow_reset=True),
-        host="", 
+        host="localhost", 
         port=8000, 
         headers=headers
     )
 
-    # chroma_client = ChromaHttpClientFactory.create_with_auth()
-    embedding_function = EmbeddingFactory.create()
+    embedding_function = EmbeddingFactory.create_with_auth()
     retriever = RetrieverFactory.create(repo_name, chroma_client=chroma_client, embedding_function=embedding_function)
-    print("retriever type", type(retriever))
     context_retriever = RetrieveAdditionalContextTool(retriever, collection_name=repo_name)
 
     tools = [context_retriever]

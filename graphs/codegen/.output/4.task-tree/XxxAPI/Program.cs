@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Xo.TaskTree;
 
 namespace XxxAPI
@@ -9,16 +10,21 @@ namespace XxxAPI
     {
         static async Task Main(string[] args)
         {
+            var serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var stateManager = serviceProvider.GetService<IStateManager>();
+
             var cancellationToken = new CancellationToken();
-            IStateManager stateManager = new StateManager();
 
             var workflow = stateManager
-                .RootIf<ITranscriptUploadService>()
-                .Then<ITranscriptProcessingService>(
-                    configure => configure.MatchArg("<<transcript>>"),
-                    then => then.Then<IHierarchyApprovalService>(configure: c => c.RequireResult())
+                .RootIf<ITranscriptProcessor>()
+                .Then<IHierarchyBuilder>(
+                    configure => configure.MatchArg("<<transcript-data>>"),
+                    then => then.Then<IWorkItemCreator>(configure: c => c.RequireResult())
                 )
-                .Else<IErrorHandlingService>(c => c.MatchArg("<<error>>"));
+                .Else<IApiGateway>(c => c.MatchArg<IDaprIntegration>(c => c.MatchArg("<<api-data>>")));
 
             var node = workflow.Build();
 
@@ -26,27 +32,87 @@ namespace XxxAPI
             var msg = msgs.First();
             var result = msg.Data<bool>();
 
-            Console.WriteLine($"Workflow completed with result: {result}");
+            Console.WriteLine($"Workflow execution result: {result}");
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IStateManager, StateManager>();
+            services.AddTransient<ITranscriptProcessor, TranscriptProcessor>();
+            services.AddTransient<IHierarchyBuilder, HierarchyBuilder>();
+            services.AddTransient<IWorkItemCreator, WorkItemCreator>();
+            services.AddTransient<IApiGateway, ApiGateway>();
+            services.AddTransient<IDaprIntegration, DaprIntegration>();
         }
     }
 
-    public interface ITranscriptUploadService
+    public interface ITranscriptProcessor
     {
-        bool UploadTranscript();
+        Task ProcessTranscriptAsync(string transcriptData);
     }
 
-    public interface ITranscriptProcessingService
+    public interface IHierarchyBuilder
     {
-        Task<int> ProcessTranscriptAsync(string transcript);
+        Task BuildHierarchyAsync(string processedData);
     }
 
-    public interface IHierarchyApprovalService
+    public interface IWorkItemCreator
     {
-        Task<bool> ApproveHierarchyAsync(int hierarchyId);
+        Task CreateWorkItemsAsync(string hierarchyData);
     }
 
-    public interface IErrorHandlingService
+    public interface IApiGateway
     {
-        Task HandleErrorAsync(string error);
+        Task HandleApiRequestAsync(string apiData);
+    }
+
+    public interface IDaprIntegration
+    {
+        Task IntegrateWithDaprAsync(string daprData);
+    }
+
+    public class TranscriptProcessor : ITranscriptProcessor
+    {
+        public Task ProcessTranscriptAsync(string transcriptData)
+        {
+            // Implementation here
+            return Task.CompletedTask;
+        }
+    }
+
+    public class HierarchyBuilder : IHierarchyBuilder
+    {
+        public Task BuildHierarchyAsync(string processedData)
+        {
+            // Implementation here
+            return Task.CompletedTask;
+        }
+    }
+
+    public class WorkItemCreator : IWorkItemCreator
+    {
+        public Task CreateWorkItemsAsync(string hierarchyData)
+        {
+            // Implementation here
+            return Task.CompletedTask;
+        }
+    }
+
+    public class ApiGateway : IApiGateway
+    {
+        public Task HandleApiRequestAsync(string apiData)
+        {
+            // Implementation here
+            return Task.CompletedTask;
+        }
+    }
+
+    public class DaprIntegration : IDaprIntegration
+    {
+        public Task IntegrateWithDaprAsync(string daprData)
+        {
+            // Implementation here
+            return Task.CompletedTask;
+        }
     }
 }

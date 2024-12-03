@@ -1,34 +1,22 @@
 ```mermaid
 C4Container
-title Container Diagram for Meeting Transcript to Azure DevOps Work Items
+title Container diagram for Transcript to Azure DevOps Work Items
 
-Person(user, "User", "Interacts with the system")
+Person(user, "User", "Uploads meeting transcript and approves work item hierarchy.")
 
-Container_Boundary(webAppBoundary, "Web Application Boundary") {
-    Container(frontend, "Frontend", "Vue.js", "Allows users to upload transcripts and view work item hierarchy")
-    Container(backend, "Backend", "Python", "Processes transcripts and communicates with Azure DevOps")
+Container_Boundary(webAppBoundary, "Web Application") {
+    Container(frontend, "Vue.js Frontend", "JavaScript, Vue.js", "Provides the user interface for uploading transcripts and approving work item hierarchies.")
+    Container(backend, "Python Backend", "Python, Flask", "Handles business logic and processes transcripts.")
+    ContainerDb(database, "NoSQL Database", "MongoDB", "Stores transcripts, work item hierarchies, and user data.")
+    Container(microservices, "Microservices", "Dapr", "Facilitates communication between microservices.")
 }
 
-Container_Boundary(databaseBoundary, "Database Boundary") {
-    ContainerDb(database, "NoSQL Database", "Stores transcripts and work item data")
-}
+System_Ext(azureDevOps, "Azure DevOps", "External system where work items are created.")
 
-Container_Boundary(microservicesBoundary, "Microservices Boundary") {
-    Container(transcriptService, "Transcript Service", "Python", "Processes and converts transcripts into work item hierarchy")
-    Container(azureDevOpsService, "Azure DevOps Service", "Python", "Interacts with Azure DevOps to create work items")
-}
+Rel(user, frontend, "Uses", "HTTPS")
+Rel(frontend, backend, "Sends transcript and receives hierarchy", "HTTPS/JSON")
+Rel(backend, database, "Stores and retrieves data", "MongoDB Protocol")
+Rel(backend, azureDevOps, "Creates work items", "Azure DevOps API")
+Rel(backend, microservices, "Communicates with", "Dapr Protocol")
 
-System_Boundary(daprBoundary, "Dapr Boundary") {
-    Container(dapr, "Dapr", "Microservices Communication", "Facilitates communication between microservices")
-}
-
-Rel(user, frontend, "Uploads transcripts and views hierarchy")
-Rel(frontend, backend, "Sends transcript data")
-Rel(backend, transcriptService, "Processes transcript")
-Rel(transcriptService, database, "Stores processed data")
-Rel(transcriptService, azureDevOpsService, "Sends work item hierarchy")
-Rel(azureDevOpsService, database, "Stores work item data")
-Rel(azureDevOpsService, dapr, "Uses for communication")
-Rel(dapr, transcriptService, "Facilitates communication")
-Rel(dapr, azureDevOpsService, "Facilitates communication")
 ```

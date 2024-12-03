@@ -1,27 +1,23 @@
 ```mermaid
 C4Context
-    title System Context Diagram for Meeting Transcript to Azure DevOps Work Items
+  title System Context diagram for Transcript to Azure DevOps Work Items
 
-    Person(user, "User", "A user who wants to translate meeting transcripts into Azure DevOps Work Items.")
+  Person(user, "User", "Uploads meeting transcript and approves work item hierarchy.")
 
-    System(webApp, "Web Application", "Allows users to upload transcripts and create work item hierarchies.")
-    System_Ext(azureDevOps, "Azure DevOps", "Platform for managing development projects.")
-    SystemDb(database, "NoSQL Database", "Stores transcripts and work item data.")
+  System_Boundary(webAppBoundary, "Web Application") {
+    System(webApp, "Web Application", "Processes transcript and interacts with Azure DevOps.")
+  }
 
-    Rel(user, webApp, "Uploads transcripts and approves work item hierarchy.")
-    Rel(webApp, azureDevOps, "Creates work items based on approved hierarchy.")
-    Rel(webApp, database, "Stores and retrieves transcript and work item data.")
+  System_Ext(azureDevOps, "Azure DevOps", "External system where work items are created.")
+  SystemDb_Ext(noSqlDb, "NoSQL Database", "Stores data for the web application.")
+  System_Ext(dapr, "Dapr", "Used for microservices communication.")
+  System_Ext(vueJs, "Vue.js Frontend", "User interface of the web application.")
+  System_Ext(pythonBackend, "Python Backend", "Backend logic of the web application.")
 
-    UpdateElementStyle(webApp, $backgroundColor="lightblue", $borderColor="blue")
-    UpdateElementStyle(azureDevOps, $backgroundColor="lightgray", $borderColor="gray")
-    UpdateElementStyle(database, $backgroundColor="lightyellow", $borderColor="orange")
+  Rel(user, webApp, "Uploads transcript and approves hierarchy")
+  Rel(webApp, azureDevOps, "Creates work items")
+  Rel(webApp, noSqlDb, "Stores and retrieves data")
+  Rel(webApp, dapr, "Uses for microservices communication")
+  Rel(webApp, vueJs, "Uses for frontend")
+  Rel(webApp, pythonBackend, "Uses for backend logic")
 ```
-
-### Explanation
-
-- **User**: The person who interacts with the system to translate meeting transcripts into Azure DevOps Work Items.
-- **Web Application**: The main system that allows users to upload transcripts, build work item hierarchies, and create work items in Azure DevOps.
-- **Azure DevOps**: An external system where the work items are created and managed.
-- **NoSQL Database**: Used to store transcripts and work item data, supporting horizontal scaling and large data storage.
-
-The web application is built using Vue.js for the frontend and Python for the backend, utilizing Dapr for microservices to ensure scalability and performance.

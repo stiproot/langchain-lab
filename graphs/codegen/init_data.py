@@ -8,12 +8,14 @@ from langchain_text_splitters import (
     CharacterTextSplitter,
     RecursiveCharacterTextSplitter,
 )
-from common.model_factory import EmbeddingFactory
-from chroma.chroma_utils import (
-    chunk_embed_and_publish,
-    create_retriever,
-    ChromaHttpClientFactory,
-)
+# from common.model_factory import EmbeddingFactory
+# from chroma.chroma_utils import (
+#     chunk_embed_and_publish,
+#     create_retriever,
+#     ChromaHttpClientFactory,
+# )
+from agnt_smth.core.utls import log, ModelFactory, ChromaHttpClientFactory, EmbeddingFactory, RetrieverFactory, chunk_embed_and_publish
+
 from graphs.codegen.data_types import COLLECTION_NAMES, C4_DIAGRAM_TYPES
 
 FILE_INFO = {
@@ -34,7 +36,7 @@ FILE_INFO = {
     },
 }
 
-chroma_client = ChromaHttpClientFactory.create()
+chroma_client = ChromaHttpClientFactory.create_with_auth()
 azure_embedding = EmbeddingFactory.create()
 
 for collection_name, file_paths in FILE_INFO.items():
